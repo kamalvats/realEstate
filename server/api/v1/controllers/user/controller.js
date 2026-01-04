@@ -60,14 +60,14 @@ const setuClient = axios.create({
 });
 
 import {
-  notificationServices
-} from "../../services/notification";
+  kycServices
+} from "../../services/kycRequests";
 const {
   createKyc,
   getKyc,
   updateKyc,
   kycAggSearch
-} = notificationServices;
+} = kycServices;
 export class userController {
 
   /**

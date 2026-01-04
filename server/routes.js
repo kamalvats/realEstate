@@ -5,6 +5,7 @@ import transaction from "./api/v1/controllers/transaction/routes";
 import statics from "./api/v1/controllers/static/routes";
 import notification from "./api/v1/controllers/notification/routes";
 import property from "./api/v1/controllers/properties/routes";
+import lead from "./api/v1/controllers/leads/routes";
 
 /**
  *
@@ -20,6 +21,7 @@ export default function routes(app) {
   app.use("/api/v1/static", statics);
   app.use("/api/v1/notification", notification);
   app.use("/api/v1/property", property);
+  app.use("/api/v1/lead", lead);
 
 
   return app;

@@ -1,43 +1,39 @@
-import leadsModel from "../../../models/leads";
+import kycModel from "../../../models/kycRequests";
 import statuse, { ACTIVE } from "../../../enums/status";
 import mongoose from "mongoose"
-const leadsServices = {
+const kycServices = {
 
-    createLeads: async (insertObj) => {
-        return await leadsModel.create(insertObj);
+    createKyc: async (insertObj) => {
+        return await kycModel.create(insertObj);
     },
-    getLeads: async (obj) => {
-        return await leadsModel.findOne(obj)
+    getKyc: async (obj) => {
+        return await kycModel.findOne(obj)
     },
-    leadsCount: async (obj) => {
-        return await leadsModel.countDocuments(obj);
+    kycCount: async (obj) => {
+        return await kycModel.countDocuments(obj);
     },
-    updateLeads: async (query, updateObj) => {
-        return await leadsModel.findOneAndUpdate(query, updateObj, { new: true, upsert: true });
+    updateKyc: async (query, updateObj) => {
+        return await kycModel.findOneAndUpdate(query, updateObj, { new: true, upsert: true });
     },
-    findLeadss: async (query) => {
-        return await leadsModel.find(query);
+    findKycs: async (query) => {
+        return await kycModel.find(query);
     },
-    findLeadssSort: async (query) => {
-        return await leadsModel.find(query).sort({ airdropAmount: -1 });
+    findKycsSort: async (query) => {
+        return await kycModel.find(query).sort({ airdropAmount: -1 });
     },
 
-    leadsAggSearch: async (validatedBody) => {
+    kycAggSearch: async (validatedBody) => {
         const {
             search,
             fromDate,
             toDate,
             page,
             limit,
-            leadsType,
             status,
-            startDate,
-            endDate,
-            selfQuery,
-            leadsStatus,
-            assignedTo,
-            source
-
+            referenceId,
+            pan,
+            name,
+            userId
         } = validatedBody;
 
 
@@ -46,53 +42,29 @@ const leadsServices = {
                 $match: {
                     status: { $ne: "Delete" },
                 },
-            },
+
+            }, {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "user",
+                }
+            }, {
+                $unwind: {
+                    path: "$user",
+                    preserveNullAndEmptyArrays: true
+                }
+            }
         ];
-        if (selfQuery) {
-            query.push(selfQuery)
-        }
-        if (leadsType) {
-            query.push({ $match: { type: leadsType } });
-        }
-        if (source) {
-            query.push({ $match: { source } });
-        }
 
 
         if (search) {
             query.push({
                 $match: {
                     name: { $regex: search, $options: "i" },
+                    pan: { $regex: search, $options: "i" },
                 },
-            });
-        }
-
-
-        if (assignedTo) {
-            query.push({
-                $match: {
-                    assignedTo: { $in: assignedTo }
-                }
-            });
-
-        }
-
-
-
-
-        if (leadsType) {
-            query.push({
-                $match: {
-                    leadsType: leadsType
-                }
-            });
-        }
-
-        if (search) {
-            query.push({
-                $match: {
-                    name: { $regex: search, $options: 'i' }
-                }
             });
         }
 
@@ -103,10 +75,35 @@ const leadsServices = {
                 }
             });
         }
-        if (leadsStatus) {
+
+        if (userId) {
             query.push({
                 $match: {
-                    leadsStatus: leadsStatus
+                    userId: new mongoose.Types.ObjectId(userId)
+                }
+            });
+        }
+
+        if (referenceId) {
+            query.push({
+                $match: {
+                    referenceId: referenceId
+                }
+            });
+        }
+
+        if (pan) {
+            query.push({
+                $match: {
+                    pan: pan
+                }
+            });
+        }
+
+        if (name) {
+            query.push({
+                $match: {
+                    name: name
                 }
             });
         }
@@ -150,35 +147,17 @@ const leadsServices = {
             });
         }
 
-        if (startDate && endDate) {
-            query.push({
-                $match: {
-                    $and: [
-                        {
-                            startDate: {
-                                $gte: new Date(new Date(startDate).toISOString().slice(0, 10))
-                            }
-                        },
-                        {
-                            endDate: {
-                                $lte: new Date(new Date(endDate).toISOString().slice(0, 10) + "T23:59:59.999Z")
-                            }
-                        }
-                    ]
-                }
-            });
-        }
-        let agg = leadsModel.aggregate(query);
+        let agg = kycModel.aggregate(query);
         let options = {
             page: Number(page) || 1,
             limit: Number(limit) || 10,
             sort: { createdAt: -1 },
         };
 
-        return await leadsModel.aggregatePaginate(agg, options);
+        return await kycModel.aggregatePaginate(agg, options);
     },
 };
 
 module.exports = {
-    leadsServices,
+    kycServices,
 };

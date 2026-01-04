@@ -345,6 +345,14 @@ class propertyController {
 
     try {
       const validatedBody = await Joi.validate(req.body, schema);
+      let admin = await findUser({
+        _id: req.userId,
+        userType: {
+          $ne: "USER"
+        },
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
       const exists = await getProperties({
         title: validatedBody.title,
@@ -839,6 +847,14 @@ class propertyController {
 
     try {
       const validatedBody = await Joi.validate(req.body, schema);
+      let admin = await findUser({
+        _id: req.userId,
+        userType: {
+          $ne: "USER"
+        },
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
       const property = await getProperties({
         _id: validatedBody.propertyId,
@@ -903,6 +919,14 @@ class propertyController {
       const { propertyId } = await Joi.validate(req.query, {
         propertyId: Joi.string().required(),
       });
+      let admin = await findUser({
+        _id: req.userId,
+        userType: {
+          $ne: "USER"
+        },
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
       const deleted = await updateProperties(
         { _id: propertyId },
@@ -952,6 +976,14 @@ class propertyController {
         propertyId: Joi.string().required(),
         propertyStatus: Joi.string().required(),
       });
+      let admin = await findUser({
+        _id: req.userId,
+        userType: {
+          $ne: "USER"
+        },
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
       const updated = await updateProperties(
         { _id: propertyId },

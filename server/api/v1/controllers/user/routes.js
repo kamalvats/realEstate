@@ -9,6 +9,7 @@ export default Express.Router()
 
     .post("/signup", controller.signup)
     .post('/login', controller.login)
+    .post('/webhook/setu', controller.setuWebhook)
     
     .use(auth.verifyToken)
     .post('/sendOtp', controller.sendOtp)
@@ -16,5 +17,9 @@ export default Express.Router()
     .get('/graphDWUser', controller.graphDWUser)
     .get('/getProfile', controller.getProfile)
     .delete("/deleteAccount", controller.deleteAccount)
+    .post('/pan/create', controller.createPanKyc)
+    .get('/pan/status/:referenceId', controller.checkKycStatus)
+    .get("/kycList", controller.kycList)
+
     .use(upload.uploadFile)
     .post('/uploadFile', controller.uploadFile)

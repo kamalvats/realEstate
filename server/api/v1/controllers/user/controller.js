@@ -48,6 +48,26 @@ const {
 import _ from "lodash";
 import { activityServices } from "../../services/activity";
 const { createActivity } = activityServices;
+import config from "config";
+const axios = require("axios");
+const setuClient = axios.create({
+  baseURL: config.get("SETU_BASE_URL"),
+  headers: {
+    "x-client-id": config.get("SETU_CLIENT_ID"),
+    "x-client-secret": config.get("SETU_CLIENT_SECRET"),
+    "Content-Type": "application/json",
+  },
+});
+
+import {
+  notificationServices
+} from "../../services/notification";
+const {
+  createKyc,
+  getKyc,
+  updateKyc,
+  kycAggSearch
+} = notificationServices;
 export class userController {
 
   /**
@@ -326,15 +346,7 @@ export class userController {
    */
   async getProfile(req, res, next) {
     try {
-      let adminResult = await findUser({
-        userType: userType.ADMIN,
-        status: {
-          $ne: status.DELETE,
-        },
-      });
-      if (!adminResult) {
-        throw apiError.notFound(responseMessage.USER_NOT_FOUND);
-      }
+
       let userResult = await findUser({
         _id: req.userId,
         status: {
@@ -710,7 +722,7 @@ export class userController {
         email,
         mobile
       } = validatedBody;
-      if(!mobile && !email){
+      if (!mobile && !email) {
         throw apiError.badRequest("Please enter email or mobile number");
       }
       var userResult = await findUser({
@@ -723,9 +735,9 @@ export class userController {
         var otp = await commonFunction.getOTP();
         var newOtp = otp;
         var time = Date.now() + 180000;
-        if(mobile){
+        if (mobile) {
 
-        }else{
+        } else {
           await commonFunction.sendEmailOtp(email, otp, userResult.walletAddress);
         }
         var updateResult = await updateUser({
@@ -822,32 +834,32 @@ export class userController {
     }
   }
 
-    /**
-   * @swagger
-   * /user/resendOtp:
-   *   post:
-   *     tags:
-   *       - USER
-   *     description: resend otp by user on plateform when he resend otp
-   *     produces:
-   *       - application/json
-   *     parameters:
-   *       - name: resendOtp
-   *         description: resendOtp
-   *         in: body
-   *         required: true
-   *         schema:
-   *           $ref: '#/definitions/resendOtp'
-   *     responses:
-   *       200:
-   *         description: OTP send successfully.
-   *       404:
-   *         description: This user does not exist.
-   *       500:
-   *         description: Internal Server Error
-   *       501:
-   *         description: Something went wrong!
-   */
+  /**
+ * @swagger
+ * /user/resendOtp:
+ *   post:
+ *     tags:
+ *       - USER
+ *     description: resend otp by user on plateform when he resend otp
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: resendOtp
+ *         description: resendOtp
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/resendOtp'
+ *     responses:
+ *       200:
+ *         description: OTP send successfully.
+ *       404:
+ *         description: This user does not exist.
+ *       500:
+ *         description: Internal Server Error
+ *       501:
+ *         description: Something went wrong!
+ */
   async resendOtp(req, res, next) {
     var validationSchema = {
       email: Joi.string().optional(),
@@ -862,7 +874,7 @@ export class userController {
         email,
         mobileNumber
       } = validatedBody;
-       let userResult = await checkUserExists(email, mobileNumber);
+      let userResult = await checkUserExists(email, mobileNumber);
       if (!userResult) {
         throw apiError.notFound(responseMessage.USER_NOT_FOUND);
       } else {
@@ -884,6 +896,235 @@ export class userController {
       }
     } catch (error) {
       console.log(error);
+      return next(error);
+    }
+  }
+
+  /**
+   * @swagger
+   * /user/createPanKyc:
+   *   get:
+   *     tags:
+   *       - USER
+   *     description:createPanKyc
+   *     produces:
+   *       - application/json
+   *     parameters:
+   *       - name: token
+   *         description: token
+   *         in: header
+   *         required: true
+   *       - name: pan
+   *         description: pan
+   *         in: query
+   *         required: true
+   *       - name: name
+   *         description: name
+   *         in: query
+   *         required: true
+   *     responses:
+   *       200:
+   *         description: Returns success message
+   */
+  async createPanKyc(req, res, next) {
+    try {
+      let userData = await findUserData({ _id: req.userId });
+      if (!userData) {
+        throw apiError.notFound(responseMessage.USER_NOT_FOUND);
+      }
+      let alreadyApplied = await getKyc({ status: "PENDING" });
+      if (alreadyApplied) {
+        throw apiError.badRequest("You have already applied for kyc");
+      }
+      const referenceId = `user_${Date.now()}`;
+
+      const response = await setuClient.post("/api/kyc/pan", {
+        reference_id: referenceId,
+        redirect_url: "https://your-frontend.com/kyc-success",
+        callback_url: "https://your-backend.com/api/v1/user/webhook/setu",
+      });
+
+      await createKyc({ referenceId, pan: req.query.pan, name: req.query.name });
+      return res.json(
+        new response({ referenceId, redirectUrl: response.data.redirect_url, }, "success")
+      );
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+
+  async setuWebhook(req, res, next) {
+    try {
+      const payload = req.body;
+
+      /*
+        payload example:
+        {
+          reference_id,
+          status: "SUCCESS" | "FAILED",
+          pan,
+          name
+        }
+      */
+      let kycStatus = "PENDING";
+      if (payload.status === "SUCCESS") {
+        console.log("✅ PAN VERIFIED:", payload.pan);
+        kycStatus = "APPROVED";
+        // DB update -> kyc_status = VERIFIED
+      } else {
+        console.log("❌ KYC FAILED:", payload.reference_id);
+        kycStatus = "REJECTED";
+        // DB update -> kyc_status = REJECTED
+      }
+      await updateKyc({ referenceId: payload.reference_id }, { status: kycStatus });
+      return res.json(
+        new response({ received: true }, "success")
+      );
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  /**
+   * @swagger
+   * /user/pan/status/:referenceId:
+   *   get:
+   *     tags:
+   *       - USER
+   *     description: get his own profile details with getProfile API
+   *     produces:
+   *       - application/json
+   *     parameters:
+   *       - name: token
+   *         description: token
+   *         in: header
+   *         required: true
+   *       - name: params
+   *         description: params
+   *         in: header
+   *         required: true
+   *     responses:
+   *       200:
+   *         description: Returns success message
+   */
+  async checkKycStatus(req, res, next) {
+    try {
+      const { referenceId } = req.params;
+
+      const response = await setuClient.get(
+        `/api/kyc / status / ${referenceId}`
+      );
+      return res.json(
+        new response(response.data, "success")
+      );
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  /**
+     * @swagger
+     * /user/kycList:
+     *   get:
+     *     tags:
+     *       - USER
+     *     description: get kycList
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: token
+     *         description: token
+     *         in: header
+     *         required: true
+     *       - name: fromDate
+     *         description: fromDate
+     *         in: query
+     *         required: false
+     *       - name: toDate
+     *         description: toDate
+     *         in: query
+     *         required: false
+     *       - name: page
+     *         description: page
+     *         in: query
+     *         required: false
+     *       - name: limit
+     *         description: limit
+     *         in: query
+     *         required: false
+     *       - name: referenceId
+     *         description: referenceId
+     *         in: query
+     *         required: false
+     *       - name: status
+     *         description: status
+     *         in: query
+     *         required: false
+     *       - name: pan
+     *         description: pan
+     *         in: query
+     *         required: false
+     *       - name: search
+     *         description: search
+     *         in: query
+     *         required: false
+     *       - name: name
+     *         description: name
+     *         in: query
+     *         required: false
+     *       - name: userId
+     *         description: userId
+     *         in: query
+     *         required: false
+     *     responses:
+     *       200:
+     *         description: Data found successfully.
+     *       404:
+     *         description: Data not found.
+     *       500:
+     *         description: Internal Server Error
+     *       501:
+     *         description: Something went wrong!
+     */
+
+  async kycList(req, res, next) {
+    const validationSchema = {
+      fromDate: Joi.string().optional(),
+      toDate: Joi.string().optional(),
+      page: Joi.string().optional(),
+      limit: Joi.string().optional(),
+      referenceId: Joi.string().optional(),
+      status: Joi.string().optional(),
+      search: Joi.string().optional(),
+      pan: Joi.string().optional(),
+      name: Joi.string().optional(),
+      userId: Joi.string().optional(),
+    };
+    try {
+      let validatedBody = await Joi.validate(req.query, validationSchema);
+      let userResult = await findUser({
+        _id: req.userId,
+        status: {
+          $ne: status.DELETE
+        },
+      });
+      if (!userResult) {
+        throw apiError.unauthorized(responseMessage.UNAUTHORIZED);
+      }
+      if (userResult.userType == "USER") {
+        validatedBody.userId = userResult._id;
+      }
+
+      let kycData = await kycAggSearch(validatedBody);
+      if (kycData.docs.length == 0) {
+        throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
+      }
+
+      return res.json(
+        new response(kycData, responseMessage.DATA_FOUND)
+      );
+    } catch (error) {
       return next(error);
     }
   }

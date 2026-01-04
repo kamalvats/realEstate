@@ -1,11 +1,13 @@
-import { Schema, model, Types } from "mongoose";
+import mongoosePaginate from "mongoose-paginate";
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate";
+import Mongoose, { Schema, Types } from "mongoose";
 
 const LeadSchema = new Schema(
   {
     /* ================= CORE ================= */
     type: {
       type: String,
-      enum: ["enquiry", "site_visit", "callback"],
+      enum: ["enquiry", "site_visit", "callback","info"],
       required: true,
       index: true,
     },
@@ -32,12 +34,10 @@ const LeadSchema = new Schema(
 
     name: {
       type: String,
-      required: true,
     },
 
     mobile: {
       type: String,
-      required: true,
       index: true,
     },
 
@@ -53,11 +53,7 @@ const LeadSchema = new Schema(
       index: true,
     },
 
-    projectId: {
-      type: Types.ObjectId,
-      ref: "Project",
-      index: true,
-    },
+   
 
     /* ================= ENQUIRY ================= */
     message: String,
@@ -80,5 +76,7 @@ LeadSchema.index({ type: 1, status: 1 });
 LeadSchema.index({ createdAt: -1 });
 LeadSchema.index({ propertyId: 1 });
 LeadSchema.index({ projectId: 1 });
-
-export const Lead = model("Lead", LeadSchema);
+LeadSchema.index({ location: "2dsphere" });
+LeadSchema.plugin(mongooseAggregatePaginate);
+LeadSchema.plugin(mongoosePaginate);
+module.exports = Mongoose.model("Lead", LeadSchema);

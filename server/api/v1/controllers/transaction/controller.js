@@ -137,28 +137,6 @@ export class transactionController {
       if (transactionHistory.docs.length == 0) {
         throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
       }
-      if(validatedBody.transactionType && validatedBody.transactionType == "JOINED") {
-        transactionHistory.docs = JSON.parse(JSON.stringify(transactionHistory.docs));
-        for(let i = 0; i < transactionHistory.docs.length; i++) {
-          if(transactionHistory.docs[i].isClaimed == true) {
-            let claimedAmount = await getTransaction({userId: transactionHistory.docs[i].userId, transactionType: "CLAIMED",campaignId: transactionHistory.docs[i].campaignId});
-            transactionHistory.docs[i].claimedAmountByUser = claimedAmount.amount
-          }else {
-            transactionHistory.docs[i].claimedAmountByUser = 0
-          }
-          let userData =await findUser({_id: transactionHistory.docs[i].userId});
-          if(userData && userData.referredBy) {
-            let refferedUser = await findUser({_id: userData.referredBy});
-            if(refferedUser && refferedUser.userType == userType.USER) {
-              transactionHistory.docs[i].referredBy = refferedUser.walletAddress;
-            }else{
-              transactionHistory.docs[i].referredBy = userData.referrerCode;
-            }
-          }else{
-            transactionHistory.docs[i].referredBy ="-"
-          }
-        }
-      }
       return res.json(
         new response(transactionHistory, responseMessage.DATA_FOUND)
       );
@@ -311,18 +289,6 @@ export class transactionController {
       let transactionHistory = await transactionPaginateSearch(validatedBody);
       if (transactionHistory.docs.length == 0) {
         throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
-      }
-      if (validatedBody.transactionType == "JOINED") {
-        transactionHistory.docs = JSON.parse(JSON.stringify(transactionHistory.docs))
-        for (let transaction of transactionHistory.docs) {
-          let allTasks = await findTasks({ campaignId: transaction.campaignId, status: "Active" })
-          let totalReward = allTasks.reduce((a, b) => a + b.reward, 0)
-          let allVerifiedTasks = await transactionCount({ campaignId: transaction.campaignId, userId: userResult._id, transactionType: "VERIFIED" })
-          transaction.allTasks = allTasks.length
-          transaction.totalReward = totalReward
-          transaction.allVerifiedTasks = allVerifiedTasks
-        }
-
       }
       return res.json(
         new response(transactionHistory, responseMessage.DATA_FOUND)

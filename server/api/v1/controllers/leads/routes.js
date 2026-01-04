@@ -13,4 +13,4 @@ export default Express.Router()
   .get("/admin/view", controller.viewLead)
   .get("/admin/list", controller.listLeads)
   .put("/admin/update", controller.updateLead)
-  .delete("/admin/delete", controller.deleteLead);
+  // .delete("/admin/delete", controller.deleteLead);

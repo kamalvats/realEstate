@@ -2,10 +2,10 @@ import Joi from "joi";
 import apiError from "../../../../helper/apiError";
 import response from "../../../../../assets/response";
 import responseMessage from "../../../../../assets/responseMessage";
-import status, { DELETE } from "../../../enums/status";
+import status, { DELETE } from "../../../../enums/status";
 import mongoose from "mongoose";
 
-import { leadsServices } from "../../services/leads/leadsServices";
+import { leadsServices } from "../../services/leads";
 
 const {
   createLeads,
@@ -13,6 +13,25 @@ const {
   updateLeads,
   leadsAggSearch,
 } = leadsServices;
+import {
+  userServices
+} from "../../services/user";
+const {
+  userCheck,
+  checkUserExists,
+  emailExist,
+  userCount,
+  userCountGraph,
+  createUser,
+  findUser,
+  findUserData,
+  userFindList,
+  updateUser,
+  updateAll,
+  updateUserById,
+  paginateSearch,
+  multiUpdateLockedBal
+} = userServices;
 
 class leadController {
 
@@ -47,8 +66,6 @@ class leadController {
    *               type: string
    *             propertyId:
    *               type: string
-   *             projectId:
-   *               type: string
    *             message:
    *               type: string
    *             preferredDate:
@@ -64,7 +81,7 @@ class leadController {
   async createLead(req, res, next) {
     const schema = {
       type: Joi.string()
-        .valid("enquiry", "site_visit", "callback")
+        .valid("enquiry", "site_visit", "callback","info")
         .required(),
 
       source: Joi.string().valid("web", "mobile", "admin").optional(),
@@ -72,15 +89,14 @@ class leadController {
       userId: Joi.string().optional(),
 
       name: Joi.string().required(),
-      mobile: Joi.string().required(),
+      mobile: Joi.string().optional(),
       email: Joi.string().email().optional(),
 
       propertyId: Joi.string().optional(),
-      projectId: Joi.string().optional(),
 
       message: Joi.string().optional(),
 
-      preferredDate: Joi.date().optional(),
+      preferredDate: Joi.string().optional(),
       preferredSlot: Joi.string().optional(),
       notes: Joi.string().optional(),
 
@@ -89,7 +105,14 @@ class leadController {
 
     try {
       const validatedBody = await Joi.validate(req.body, schema);
-
+      if (validatedBody.type == "info") {
+        let alreadyPresent = await getLeads({ email: validatedBody.email, type: validatedBody.type })
+        if (alreadyPresent) {
+          return res.json(
+            new response(alreadyPresent, "Email added successfully.")
+          );
+        }
+      }
       const lead = await createLeads(validatedBody);
 
       return res.json(
@@ -115,12 +138,24 @@ class leadController {
    *       - name: leadId
    *         in: query
    *         required: true
+   *     responses:
+   *       200:
+   *         description: Lead created successfully
    */
+
   async viewLead(req, res, next) {
     try {
       const { leadId } = await Joi.validate(req.query, {
         leadId: Joi.string().required(),
       });
+      let admin = await findUser({
+        _id: req.userId,
+        userType: {
+          $ne: "USER"
+        },
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
       const lead = await getLeads({
         _id: leadId,
@@ -145,12 +180,46 @@ class leadController {
    *     tags:
    *       - ADMIN_LEAD
    *     description: Update lead status/details
+   *     produces:
+   *       - application/json
+   *     parameters:
+   *       - name: token
+   *         description: token
+   *         in: header
+   *         required: true
+   *       - name: leadId
+   *         description: leadId
+   *         in: formData
+   *         required: true
+   *       - name: status
+   *         description: status
+   *         in: formData
+   *         required: true
+   *       - name: notes
+   *         description: notes
+   *         in: formData
+   *         required: false
+   *       - name: preferredDate
+   *         description: preferredDate
+   *         in: formData
+   *         required: false
+   *       - name: preferredSlot
+   *         description: preferredSlot
+   *         in: formData
+   *         required: false
+   *       - name: timePreference
+   *         description: timePreference
+   *         in: formData
+   *         required: false
+   *     responses:
+   *       200:
+   *         description: Lead created successfully
    */
   async updateLead(req, res, next) {
     const schema = {
       leadId: Joi.string().required(),
 
-      status: Joi.string().valid("new", "contacted", "closed").optional(),
+      status: Joi.string().valid("new", "contacted", "closed").required(),
 
       notes: Joi.string().optional(),
       preferredDate: Joi.date().optional(),
@@ -160,9 +229,17 @@ class leadController {
 
     try {
       const validatedBody = await Joi.validate(
-        { ...req.query, ...req.body },
+        { ...req.body },
         schema
       );
+      let admin = await findUser({
+        _id: req.userId,
+        userType: {
+          $ne: "USER"
+        },
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
       const lead = await getLeads({
         _id: validatedBody.leadId,
@@ -187,35 +264,43 @@ class leadController {
   }
 
   /* ================= DELETE LEAD ================= */
-  /**
-   * @swagger
-   * /lead/admin/delete:
-   *   delete:
-   *     tags:
-   *       - ADMIN_LEAD
-   */
-  async deleteLead(req, res, next) {
-    try {
-      const { leadId } = await Joi.validate(req.query, {
-        leadId: Joi.string().required(),
-      });
+  // /**
+  //  * @swagger
+  //  * /lead/admin/delete:
+  //  *   delete:
+  //  *     tags:
+  //  *       - ADMIN_LEAD
+  //  */
+  // async deleteLead(req, res, next) {
+  //   try {
+  //     const { leadId } = await Joi.validate(req.query, {
+  //       leadId: Joi.string().required(),
+  //     });
+  //     let admin = await findUser({
+  //       _id: req.userId,
+  //       userType: {
+  //         $ne: "USER"
+  //       },
+  //       status: status.ACTIVE
+  //     })
+  //     if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
-      const deleted = await updateLeads(
-        { _id: leadId },
-        { status: DELETE }
-      );
+  //     const deleted = await updateLeads(
+  //       { _id: leadId },
+  //       { status: DELETE }
+  //     );
 
-      if (!deleted) {
-        throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
-      }
+  //     if (!deleted) {
+  //       throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
+  //     }
 
-      return res.json(
-        new response(deleted, responseMessage.DELETE_SUCCESS)
-      );
-    } catch (error) {
-      return next(error);
-    }
-  }
+  //     return res.json(
+  //       new response(deleted, responseMessage.DELETE_SUCCESS)
+  //     );
+  //   } catch (error) {
+  //     return next(error);
+  //   }
+  // }
 
   /* ================= LIST LEADS ================= */
   /**
@@ -237,8 +322,6 @@ class leadController {
    *         in: query
    *       - name: source
    *         in: query
-   *       - name: projectId
-   *         in: query
    *       - name: propertyId
    *         in: query
    *       - name: fromDate
@@ -249,6 +332,9 @@ class leadController {
    *         in: query
    *       - name: limit
    *         in: query
+   *     responses:
+   *       200:
+   *         description: Lead created successfully
    */
   async listLeads(req, res, next) {
     const schema = {
@@ -256,7 +342,6 @@ class leadController {
       type: Joi.string().optional(),
       status: Joi.string().optional(),
       source: Joi.string().optional(),
-      projectId: Joi.string().optional(),
       propertyId: Joi.string().optional(),
       fromDate: Joi.string().optional(),
       toDate: Joi.string().optional(),
@@ -266,14 +351,16 @@ class leadController {
 
     try {
       const validatedBody = await Joi.validate(req.query, schema);
+      let admin = await findUser({
+        _id: req.userId,
+        userType: {
+          $ne: "USER"
+        },
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
-      if (validatedBody.projectId) {
-        validatedBody.selfQuery = {
-          $match: {
-            projectId: mongoose.Types.ObjectId(validatedBody.projectId),
-          },
-        };
-      }
+     
 
       if (validatedBody.propertyId) {
         validatedBody.selfQuery = {

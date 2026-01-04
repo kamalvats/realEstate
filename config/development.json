@@ -1,5 +1,5 @@
 {
-  "port": 3000,
+  "port": 3004,
   "hostAddress": "localhost:3000",
   "websocketAddress": "ws://localhost:3000",
   "databaseHost": "127.0.0.1",
@@ -9,8 +9,8 @@
   "jwtresetsecret": "nodejwt",
  "nodemailer": {
     "service": "gmail",
-    "email": "83936b001@smtp-brevo.com",
-    "password": "BJXrcL6kayHFgtbs"
+    "email": "",
+    "password": ""
   },
   "jwtOptions": {
     "expiresIn": "24h"
@@ -34,7 +34,5 @@
     "cloud_name": "ddcii72qa",
     "api_key": "614432344813236",
     "api_secret":"CehcKxJFyJJrH-HhwXyeUKHKS0I"
-  },
-  "brevoSecret":"BJXrcL6kayHFgtbs",
-  "telegramToken":"7598615415:AAFtQgwPVimrYeDRodlmCe7UE6yJWTxEBoA"
+  }
 }

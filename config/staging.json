@@ -1,0 +1,36 @@
+{
+  "port": 3000,
+  "hostAddress": "localhost:3000",
+  "websocketAddress": "ws://localhost:3000",
+  "databaseHost": "127.0.0.1",
+  "databasePort": "27017",
+  "databaseName": "estate",
+  "jwtsecret": "nodejwt",
+  "jwtresetsecret": "nodejwt",
+ "nodemailer": {
+    "service": "gmail",
+    "email": "83936b001@smtp-brevo.com",
+    "password": "BJXrcL6kayHFgtbs"
+  },
+  "jwtOptions": {
+    "expiresIn": "24h"
+  },
+  "swaggerDefinition": {
+    "info": {
+      "title": "estate",
+      "version": "2.0",
+      "description": "estate - API Docs"
+    },
+    "basePath": "/api/v1",
+    "securityDefinitions": {
+      "tokenauth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  },
+  "brevoSecret":"BJXrcL6kayHFgtbs",
+  "telegramToken":"7598615415:AAFtQgwPVimrYeDRodlmCe7UE6yJWTxEBoA"
+ 
+}

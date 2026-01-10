@@ -55,15 +55,15 @@ var userModel = new Schema(
     dateOfBirth:{type:String},
     address:{type:String},
     location: {
-      type: {
-        type: String,
-        default: "Point",
-      },
-      coordinates: {
-        type: [Number],
-        index: "2dsphere",
-      },
-    },
+  type: {
+    type: String,
+    enum: ["Point"],
+  },
+  coordinates: {
+    type: [Number],
+  },
+},
+
   },
 
 

@@ -23,20 +23,20 @@ const wsServer = new WebSocketServer({
   keepalive: false,
   disableNagleAlgorithm: false
 });
-
+import cookieParser from "cookie-parser";
 import config from "config";
 
 
 class ExpressServer {
   constructor() {
-    
-   
+
+
     app.use(express.json({ limit: '1000mb' }));
 
     app.use(express.urlencoded({ extended: true, limit: '1000mb' }))
 
     app.use(morgan('dev'))
-
+    app.use(cookieParser());
     app.use(
       cors({
         allowedHeaders: ["Content-Type", "token", "authorization"],
@@ -86,7 +86,7 @@ class ExpressServer {
           // keepAlive: true,
           // connectTimeoutMS: 1000 * 60 * 5
         });
-  
+
         resolve(this);
       } catch (err) {
         console.error(`Error in mongodb connection ${err.message}`);
@@ -94,12 +94,12 @@ class ExpressServer {
       }
     });
   }
-  
+
 
   // })
 
   listen(port) {
-    server.listen(port,'0.0.0.0', () => {
+    server.listen(port, '0.0.0.0', () => {
       console.log(`secure app is listening @port ${port}`, new Date().toLocaleString());
     });
     return app;

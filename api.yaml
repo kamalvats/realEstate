@@ -16,7 +16,7 @@ definitions:
       - lastName
       - userName
       - password
-      - confirmPassword
+      - mobileNumber
       - referralCode
     properties:
       firstName:
@@ -29,7 +29,7 @@ definitions:
         type: string
       password:
         type: string
-      confirmPassword:
+      mobileNumber:
         type: string
       referralCode:
         type: string

@@ -6,42 +6,40 @@ import responseMessage from '../../assets/responseMessage';
 
 module.exports = {
   async verifyToken(req, res, next) {
-    try {
-      if (req.headers.token) {
-        const decodedToken = await jwt.verify(req.headers.token, config.get('jwtsecret'));
-  
-        if (decodedToken) {
-          const result2 = await userModel.findOne({ _id: decodedToken._id });
-  
-          if (!result2) {
-            return res.status(404).json({
-              responseCode: 404,
-              responseMessage: "USER NOT FOUND"
-            });
-          }
-          if (result2.status === "BLOCK") {
-            return res.status(403).json({
-              responseCode: 403,
-              responseMessage: "You have been blocked by admin."
-            });
-          } else if (result2.status === "DELETE") {
-            return res.status(402).json({
-              responseCode: 402,
-              responseMessage: "Your account has been deleted by admin."
-            });
-          } else {
-            req.userId = decodedToken._id;
-            req.userDetails = decodedToken;
-            next();
-          }
-        }
-      } else {
-        throw apiError.invalid(responseMessage.NO_TOKEN);
-      }
-    } catch (error) {
-      console.log("error=>>", error);
+  try {
+    const token =
+      req.cookies.token ||
+      req.headers.authorization.split(" ")[1];
+
+    if (!token) {
+      return next(apiError.unauthorized(responseMessage.NO_TOKEN));
     }
+
+    const decoded = jwt.verify(token, config.get("jwtsecret"));
+
+    const user = await userModel.findById(decoded._id);
+
+    if (!user) {
+      return next(apiError.notFound(responseMessage.USER_NOT_FOUND));
+    }
+
+    if (user.status === "BLOCK") {
+      return next(apiError.forbidden(responseMessage.BLOCK_BY_ADMIN));
+    }
+
+    if (user.status === "DELETE") {
+      return next(apiError.unauthorized(responseMessage.DELETE_BY_ADMIN));
+    }
+
+    req.userId = user._id;
+    req.userDetails = user;
+
+    next();
+  } catch (error) {
+    return next(apiError.unauthorized(error.message));
   }
+}
+
 ,  
 
   verifyTokenBySocket: (token) => {

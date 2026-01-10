@@ -23,6 +23,7 @@
     "cloudinary": "^1.27.1",
     "coin-ticker": "^3.2.0",
     "config": "^3.3.6",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "cron": "^4.3.3",
     "crypto": "^1.0.1",

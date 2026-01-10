@@ -146,11 +146,11 @@ export class userController {
 
       /** ================= SEND OTP ================= */
       if (email) {
-        await commonFunction.sendEmailOtp(
-          validatedBody.email,
-          validatedBody.otp,
-          validatedBody.firstName
-        );
+        // await commonFunction.sendEmailOtp(
+        //   validatedBody.email,
+        //   validatedBody.otp,
+        //   validatedBody.firstName
+        // );
       }
 
       if (mobileNumber) {
@@ -821,12 +821,12 @@ export class userController {
       });
 
 
-      var token = await commonFunction.getToken({
-        _id: updateResult._id,
-        email: updateResult.email,
-        mobileNumber: updateResult.mobileNumber,
-        userType: updateResult.userType,
-      });
+      // var token = await commonFunction.getToken({
+      //   _id: updateResult._id,
+      //   email: updateResult.email,
+      //   mobileNumber: updateResult.mobileNumber,
+      //   userType: updateResult.userType,
+      // });
       var obj = {
         _id: updateResult._id,
         name: updateResult.name,
@@ -834,7 +834,7 @@ export class userController {
         countryCode: updateResult.countryCode,
         mobileNumber: updateResult.mobileNumber,
         otpVerified: true,
-        token: token,
+        // token: token,
       };
       return res.json(new response(obj, responseMessage.OTP_VERIFY));
     } catch (error) {

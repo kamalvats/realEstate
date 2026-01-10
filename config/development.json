@@ -37,5 +37,7 @@
   },
   "SETU_CLIENT_ID": "your_client_id",
   "SETU_CLIENT_SECRET": "your_client_secret",
-  "SETU_BASE_URL": "https://dg-sandbox.setu.co"
+  "SETU_BASE_URL": "https://dg-sandbox.setu.co",
+  "SENDGRID_API_KEY": "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",
+  "SENDGRID_FROM_EMAIL": "noreply@sigrealtech.com"
 }

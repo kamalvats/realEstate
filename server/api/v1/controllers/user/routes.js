@@ -10,7 +10,7 @@ export default Express.Router()
     .post("/signup", controller.signup)
     .post('/login', controller.login)
     .post('/webhook/setu', controller.setuWebhook)
-    
+
     .use(auth.verifyToken)
     .post('/sendOtp', controller.sendOtp)
     .patch('/verifyOTP', controller.verifyOTP)
@@ -20,6 +20,7 @@ export default Express.Router()
     .post('/pan/create', controller.createPanKyc)
     .get('/pan/status/:referenceId', controller.checkKycStatus)
     .get("/kycList", controller.kycList)
-
+    .put("/editProfile", controller.editProfile)
+    .post('/contact-us', controller.contactUs)
     .use(upload.uploadFile)
     .post('/uploadFile', controller.uploadFile)

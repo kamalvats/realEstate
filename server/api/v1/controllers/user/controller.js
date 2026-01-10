@@ -48,6 +48,8 @@ const {
 import _ from "lodash";
 import { activityServices } from "../../services/activity";
 const { createActivity } = activityServices;
+import { contactUsServices } from "../../services/contactUs";
+const { createContactUs, getAllContactUs, viewContactUs } = contactUsServices;
 import config from "config";
 const axios = require("axios");
 const setuClient = axios.create({
@@ -71,25 +73,25 @@ const {
 export class userController {
 
   /**
-* @swagger
-* /user/signup:
-*   post:
-*     tags:
-*       - USER
-*     description: signup
-*     produces:
-*       - application/json
-*     parameters:
-*       - name: signup
-*         description: signup
-*         in: body
-*         required: true
-*         schema:
-*           $ref: '#/definitions/signup'
-*     responses:
-*       200:
-*         description: Returns success message
-*/
+  * @swagger
+  * /user/signup:
+  *   post:
+  *     tags:
+  *       - USER
+  *     description: signup
+  *     produces:
+  *       - application/json
+  *     parameters:
+  *       - name: signup
+  *         description: signup
+  *         in: body
+  *         required: true
+  *         schema:
+  *           $ref: '#/definitions/signup'
+  *     responses:
+  *       200:
+  *         description: Returns success message
+  */
   async signup(req, res, next) {
     const validationSchema = {
       email: Joi.string().email().optional(),
@@ -99,7 +101,6 @@ export class userController {
       lastName: Joi.string().optional(),
       userName: Joi.string().optional(),
       password: Joi.string().allow("").optional(),
-      confirmPassword: Joi.string().allow("").optional(),
     };
 
     try {
@@ -108,7 +109,6 @@ export class userController {
         email,
         mobileNumber,
         password,
-        confirmPassword,
       } = validatedBody;
 
       /** ================= AT LEAST ONE REQUIRED ================= */
@@ -120,10 +120,6 @@ export class userController {
         validatedBody.email = email.toLowerCase();
       }
 
-      /** ================= PASSWORD CHECK ================= */
-      if (password !== confirmPassword) {
-        throw apiError.conflict(responseMessage.PWD_NOT_MATCH);
-      }
 
       /** ================= USER EXISTS CHECK ================= */
       let userInfo = await checkUserExists(email, mobileNumber);
@@ -133,7 +129,7 @@ export class userController {
           if (userInfo.status === status.BLOCK) {
             throw apiError.conflict(responseMessage.BLOCK_USER_EMAIL_BY_ADMIN);
           }
-          throw apiError.conflict("User already exists");
+
         }
       }
 
@@ -173,12 +169,27 @@ export class userController {
         result = await createUser(validatedBody);
       }
 
-      result = _.omit(
-        JSON.parse(JSON.stringify(result)),
-        ["otp", "password", "base64", "secretGoogle", "emailotp2FA", "withdrawOtp"]
-      );
+      var token = await commonFunction.getToken({
+        _id: result._id,
+        email: result.email,
+        userType: result.userType,
+      });
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
 
-      return res.json(new response(result, responseMessage.USER_CREATED));
+      let results = {
+        _id: result._id,
+        email: result.email,
+        userType: result.userType,
+      };
+
+      return res.json(
+        new response(results, "OTP sent successfully. Please verify first.")
+      );
 
     } catch (error) {
       console.log(error);
@@ -211,12 +222,10 @@ export class userController {
   async login(req, res, next) {
     var validationSchema = {
       email: Joi.string().required(),
-      password: Joi.string().required(),
+      password: Joi.string().optional(),
     };
     try {
-      if (req.body.email) {
-        req.body.email = req.body.email.toLowerCase();
-      }
+
       var results;
 
       var validatedBody = await Joi.validate(req.body, validationSchema);
@@ -225,7 +234,7 @@ export class userController {
         password
       } = validatedBody;
       let userResult = await findUser({
-        email: email,
+        $or: [{ email: email }, { mobileNumber: email }]
       });
       if (!userResult) {
         throw apiError.notFound(responseMessage.USER_NOT_FOUND);
@@ -936,13 +945,13 @@ export class userController {
       if (alreadyApplied) {
         throw apiError.badRequest("You have already applied for kyc");
       }
-      const referenceId = `user_${Date.now()}`;
+      // const referenceId = `user_${Date.now()}`;
 
-      const response = await setuClient.post("/api/kyc/pan", {
-        reference_id: referenceId,
-        redirect_url: "https://your-frontend.com/kyc-success",
-        callback_url: "https://your-backend.com/api/v1/user/webhook/setu",
-      });
+      // const response = await setuClient.post("/api/kyc/pan", {
+      //   reference_id: referenceId,
+      //   redirect_url: "https://your-frontend.com/kyc-success",
+      //   callback_url: "https://your-backend.com/api/v1/user/webhook/setu",
+      // });
 
       await createKyc({ referenceId, pan: req.query.pan, name: req.query.name });
       return res.json(
@@ -1124,6 +1133,147 @@ export class userController {
       return res.json(
         new response(kycData, responseMessage.DATA_FOUND)
       );
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  /**
+     * @swagger
+     * /user/editProfile:
+     *   put:
+     *     tags:
+     *       - USER
+     *     description: editProfile
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: token
+     *         description: token
+     *         in: header
+     *         required: true
+     *       - name: firstName
+     *         description: firstName
+     *         in: formData
+     *         required: false
+     *       - name: lastName
+     *         description: lastName
+     *         in: formData
+     *         required: false
+     *       - name: email
+     *         description: email
+     *         in: formData
+     *         required: false
+     *       - name: address
+     *         description: address
+     *         in: formData
+     *         required: false
+     *       - name: budgetStart
+     *         description: budgetStart
+     *         in: formData
+     *         required: false
+     *       - name: budgetEnd
+     *         description: budgetEnd
+     *         in: formData
+     *         required: false
+     *       - name: preferredArea
+     *         description: preferredArea
+     *         in: formData
+     *         required: 
+     *     responses:
+     *       200:
+     *         description: Returns success message
+     */
+  async editProfile(req, res, next) {
+    const validationSchema = {
+      firstName: Joi.string().optional(),
+      lastName: Joi.string().optional(),
+      preferredArea: Joi.boolean().optional(),
+      budgetStart: Joi.boolean().optional(),
+      budgetEnd: Joi.boolean().optional(),
+      email: Joi.boolean().optional(),
+      address: Joi.boolean().optional(),
+    };
+    try {
+      if (req.body.email) {
+        req.body.email = req.body.email.toLowerCase();
+      }
+      const validatedBody = await Joi.validate(req.body, validationSchema);
+      let userResult = await findUser({
+        _id: req.userId,
+
+        status: {
+          $ne: status.DELETE,
+        },
+      });
+      if (!userResult) {
+        throw apiError.notFound(responseMessage.USER_NOT_FOUND);
+      }
+      var result = await updateUser({
+        _id: userResult._id,
+      },
+        validatedBody
+      );
+      return res.json(new response(result, responseMessage.USER_UPDATED));
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  /**
+ * @swagger
+ * /user/contact-us:
+ *   post:
+ *     tags:
+ *       - CONTACT US
+ *     description: contactUs
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: name
+ *         description: name
+ *         in: formData
+ *         required: true
+ *       - name: email
+ *         description: email
+ *         in: formData
+ *         required: true
+ *       - name: mobileNumber
+ *         description: mobileNumber
+ *         in: formData
+ *         required: false
+ *       - name: message
+ *         description: message
+ *         in: formData
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Contact-Us data Saved successfully
+ */
+
+  async contactUs(req, res, next) {
+    let validationSchema = {
+      name: Joi.string().required(),
+      email: Joi.string().required(),
+      mobileNumber: Joi.string().optional(),
+      message: Joi.string().required(),
+    }
+    try {
+      const validatedBody = await Joi.validate(req.body, validationSchema);
+
+      var adminResult = await findUser({
+        userType: userType.ADMIN,
+        status: status.ACTIVE
+      })
+      if (!adminResult) {
+        throw apiError.notFound("Admin not found");
+      }
+
+
+      var result = await createContactUs(validatedBody);
+      await commonFunction.sendMailContactus("support@arbique.com", validatedBody.name, validatedBody.email, validatedBody.message, validatedBody.mobileNumber,)
+      await commonFunction.sendMailContactusUser(validatedBody.email, validatedBody.name, validatedBody.message)
+      return res.json(new response(result, responseMessage.CONTACT_US));
     } catch (error) {
       return next(error);
     }

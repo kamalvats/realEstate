@@ -465,11 +465,11 @@ export class adminController {
           },
         },
         {
-          $or: [{
-            mobileNumber: email
-          }, {
-            email: email
-          }]
+          // $or: [{
+          //   mobileNumber: email
+          // }, {
+          //   email: email
+          // }]
         },
         ],
       });
@@ -1954,7 +1954,160 @@ export class adminController {
     } catch (error) {
       return next(error);
     }
+    
   }
+
+  /**
+ * @swagger
+ * /admin/contact-us/reply/{id}:
+ *   put:
+ *     tags:
+ *       - USER MANAGEMENT
+ *     description: replyContactUs
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: token
+ *         description: token
+ *         in: header
+ *         required: true
+ *       - name: id
+ *         description: id
+ *         in: path
+ *         required: true
+ *       - name: message
+ *         description: message
+ *         in: query
+ *         required: false
+ *     responses:
+ *       200:
+ *         description: Returns success message
+ */
+    async replyContactUs(req, res, next) {
+        const validationSchema = {
+            id: Joi.string().required(),
+            message: Joi.string().optional(),
+        };
+        try {
+            let { id } = req.params
+            const validatedBody = await Joi.validate({ id, ...req.query }, validationSchema);
+            let adminResult = await findUser({
+                _id: req.userId,
+                userType: {
+                    $ne: userType.USER
+                },
+                status: {
+                    $ne: status.DELETE,
+                },
+            });
+            if (!adminResult) {
+                throw apiError.notFound(responseMessage.USER_NOT_FOUND);
+            }
+            let contactResult = await findContactUs({
+                _id: validatedBody.id,
+                reply: false,
+            });
+
+            if (!contactResult) {
+                throw apiError.unauthorized(responseMessage.CONTACT_NOT_FOUND);
+            }
+
+            let contactRes = await updateContactUs({
+                _id: contactResult._id
+            }, {
+                reply: true,
+                replyMsg: validatedBody.message,
+                status: status.RESOLVED
+            });
+
+            let sendMail = await commonFunction.sendMailReplyFromAdmin(contactRes.email, contactRes.name || "User", validatedBody.message, contactResult.message)
+
+            return res.json(new response(contactRes, responseMessage.REPLY_SUCCESS));
+
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    /**
+     * @swagger
+     * /admin/contact-us:
+     *   get:
+     *     tags:
+     *       - CONTACT US
+     *     description: getContactUs
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: token
+     *         description: token
+     *         in: header
+     *         required: true
+     *       - name: page
+     *         description: page
+     *         in: query
+     *         required: false
+     *       - name: search
+     *         description: search
+     *         in: query
+     *         required: false
+     *       - name: fromDate
+     *         description: fromDate
+     *         in: query
+     *         required: false
+     *       - name: toDate
+     *         description: toDate
+     *         in: query
+     *         required: false
+     *       - name: page
+     *         description: page
+     *         in: query
+     *         required: false
+     *       - name: status
+     *         description: status
+     *         in: query
+     *         required: false
+     *       - name: reply
+     *         description: reply(true/false)boolean
+     *         in: query
+     *         required: false
+     *     responses:
+     *       200:
+     *         description: Data found successfully.
+     */
+
+    async getContactUs(req, res, next) {
+        const validationSchema = {
+            page: Joi.alternatives().try(Joi.string(), Joi.number()).optional(),
+            limit: Joi.alternatives().try(Joi.string(), Joi.number()).optional(),
+            search: Joi.string().optional(),
+            fromDate: Joi.string().optional(),
+            toDate: Joi.string().optional(),
+            status: Joi.string().optional(),
+            reply: Joi.string().optional(),
+        };
+        try {
+            let validatedBody = await Joi.validate(req.query, validationSchema);
+            let userResult = await findUser({
+                _id: req.userId,
+                userType: { $in: [userType.USER, userType.ADMIN, userType.SUBADMIN] },
+                status: {
+                    $ne: status.DELETE,
+                },
+            });
+            if (!userResult) {
+                throw apiError.notFound(responseMessage.USER_NOT_FOUND);
+            }
+            let adminRes = await getAllContactUs(validatedBody)
+
+            if (adminRes.docs.length == 0) {
+                return res.json(new response(responseMessage.CONTACT_NOT_FOUND));
+            }
+            return res.json(new response(adminRes, responseMessage.DATA_FOUND));
+        } catch (error) {
+            return next(error);
+        }
+    }
 
 
 

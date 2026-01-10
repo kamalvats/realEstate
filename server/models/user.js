@@ -5,6 +5,7 @@ import userType from "../enums/userType";
 import status from "../enums/status";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
+import { type } from "joi/lib/types/object";
 
 var userModel = new Schema(
   {
@@ -46,6 +47,23 @@ var userModel = new Schema(
     permissions: [],
     password: { type: String },
     kyc: { type: Boolean, default: false },
+    preferredArea:{type:String},
+    budgetStart:{type:Number},
+    budgetEnd:{type:Number},
+    mobileNumber:{type:String},
+    countryCode:{type:String},
+    dateOfBirth:{type:String},
+    address:{type:String},
+    location: {
+      type: {
+        type: String,
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        index: "2dsphere",
+      },
+    },
   },
 
 

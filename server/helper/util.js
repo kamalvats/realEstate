@@ -6,14 +6,15 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import cloudinary from "cloudinary";
 const algorithm = 'aes-256-cbc';
-const secretKey =  '12345678901234567890123456789012'; // Must be 32 characters
+const secretKey = '12345678901234567890123456789012'; // Must be 32 characters
 const iv = crypto.randomBytes(16);
 cloudinary.config({
     cloud_name: config.get("cloudinary.cloud_name"),
     api_key: config.get("cloudinary.api_key"),
     api_secret: config.get("cloudinary.api_secret"),
 });
-
+import sgMail from "@sendgrid/mail";
+sgMail.setApiKey(config.get("SENDGRID_API_KEY"));
 import qrcode from "qrcode";
 
 module.exports = {
@@ -182,7 +183,7 @@ module.exports = {
                 <div style="display: flex; align-items: center; justify-content: center;">
                     
                         
-                    <h2 style="margin-bottom: 30px;">BinGold</h2>
+                    <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                 </div>
             </header>
             <h2> Sub-Admin Account Created Successfully</h2>
@@ -215,7 +216,7 @@ module.exports = {
 
             </table>
 
-            <p>  The sub-administrator now has access to manage certain aspects of BinGold based on the assigned access level. Please ensure that they are briefed on their responsibilities and access rights accordingly.</p>
+            <p>  The sub-administrator now has access to manage certain aspects of SIG Realtech based on the assigned access level. Please ensure that they are briefed on their responsibilities and access rights accordingly.</p>
         
             <p> If you have any questions or concerns regarding this sub-administrator account creation, please feel free to contact us at [Administrator's Contact Email].</p>
             
@@ -225,7 +226,7 @@ module.exports = {
                target="_blank">Contact Us</a>
        </div>
             <p>  Best regards,</p>
-            <p>  The BinGold Team</p>
+            <p>  The SIG Realtech Team</p>
             <br>
         </div>
         
@@ -235,28 +236,22 @@ module.exports = {
     </html>
     `
 
-       var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
-            to: to,
+        const msg = {
+            to,
+            from: {
+                email: process.env.SENDGRID_FROM_EMAIL,
+                name: "SIG Realtech",
+            },
             subject: "Sub-Admin Account Created Successfully",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
     },
 
 
-    sendMailForBlock: async (to, name,reason) => {
+    sendMailForBlock: async (to, name, reason) => {
         let html = `<!DOCTYPE html>
     <html lang="en">
     
@@ -382,13 +377,13 @@ module.exports = {
                 <div style="display: flex; align-items: center; justify-content: center;">
                     
                         
-                    <h2 style="margin-bottom: 30px;">BinGold</h2>
+                    <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                 </div>
             </header>
-            <h2>Your BinGold  Account Suspended.</h2>
+            <h2>Your SIG Realtech  Account Suspended.</h2>
            <p> Dear ${name},</p>
             
-           <p> We regret to inform you that your account on BinGold has been blocked by our administrative team due to "${reason}".</p>
+           <p> We regret to inform you that your account on SIG Realtech has been blocked by our administrative team due to "${reason}".</p>
             
            <p> Thank you for your understanding.</p>
            <div style="margin: 40px 0 50px;">
@@ -396,7 +391,7 @@ module.exports = {
                target="_blank">Contact Us</a>
        </div>
            <p> Best regards,</p>
-           <p> The BinGold Team</p>
+           <p> The SIG Realtech Team</p>
             
             
             
@@ -411,24 +406,20 @@ module.exports = {
     </html>
     `
 
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: to,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Account Blocked",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
+
+
     },
 
     sendMailForUnblock: async (to, name) => {
@@ -557,18 +548,18 @@ module.exports = {
                     <div style="display: flex; align-items: center; justify-content: center;">
                         
                             
-                        <h2 style="margin-bottom: 30px;">BinGold</h2>
+                        <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                     </div>
                 </header>
-           <h2>  Account Unblocked - BinGold</h2>
+           <h2>  Account Unblocked - SIG Realtech</h2>
 
             <p>Dear ${name}</p>
             
-            <p> We're pleased to inform you that your account on BinGold has been unblocked by our administrative team.</p>
+            <p> We're pleased to inform you that your account on SIG Realtech has been unblocked by our administrative team.</p>
             
-            <p> You can now access your account and resume enjoying all the features and benefits of BinGold. We apologize for any inconvenience this may have caused and appreciate your patience during the review process.</p>
+            <p> You can now access your account and resume enjoying all the features and benefits of SIG Realtech. We apologize for any inconvenience this may have caused and appreciate your patience during the review process.</p>
             
-            <p> If you have any questions or require further assistance, please don't hesitate to contact our support team at BinGold!</p>
+            <p> If you have any questions or require further assistance, please don't hesitate to contact our support team at SIG Realtech!</p>
             
             <p> Thank you for being a valued member of our community.</p>
             <div style="margin: 40px 0 50px;">
@@ -576,7 +567,7 @@ module.exports = {
                target="_blank">Contact Us</a>
        </div>
             <p>  Best regards,</p>
-            <p>  The BinGold Team </p>
+            <p>  The SIG Realtech Team </p>
             
             
             
@@ -589,26 +580,19 @@ module.exports = {
     
     </html>
     `
-
-
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: to,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Account Unblocked",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
+
     },
 
 
@@ -739,10 +723,10 @@ module.exports = {
                   <div style="display: flex; align-items: center; justify-content: center;">
                       
                           
-                      <h2 style="margin-bottom: 30px;">BinGold</h2>
+                      <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                   </div>
               </header>
-              <h2>User Query for - BinGold </h2>
+              <h2>User Query for - SIG Realtech </h2>
               
               <p>Dear ${name}👋</p>
  <p>We're writing to inform you that there is a msg from ${userNames}.</p>
@@ -752,7 +736,7 @@ module.exports = {
  <p>Thank you for your attention to this matter.</p>
 
  <p>Best regards from ${userNames},</p>
- <p>The BinGold Team</p>
+ <p>The SIG Realtech Team</p>
              
              <br>
           </div>
@@ -761,28 +745,21 @@ module.exports = {
   </body>
   
   </html>`
-
-       var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msgs = {
             to: to,
-            subject: `User Query`,
-            html: html,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
+            subject: "User Query",
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msgs);
+        return true;
     },
 
-    sendMailContactusUser: async (to, name,msg) => {
+    sendMailContactusUser: async (to, name, msg) => {
         let html =
             `<!DOCTYPE html>
   <html lang="en">
@@ -909,10 +886,10 @@ module.exports = {
                   <div style="display: flex; align-items: center; justify-content: center;">
                       
                           
-                      <h2 style="margin-bottom: 30px;">BinGold</h2>
+                      <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                   </div>
               </header>
-              <h2>User Query for - BinGold </h2>
+              <h2>User Query for - SIG Realtech </h2>
               
               <p>Dear ${name}👋</p>
  <p>We're writing to inform you send a query .</p>
@@ -921,8 +898,8 @@ module.exports = {
  
  <p>Thank you for your attention to this matter.</p>
 
- <p>Best regards from BinGold,</p>
- <p>The BinGold Team</p>
+ <p>Best regards from SIG Realtech,</p>
+ <p>The SIG Realtech Team</p>
              
              <br>
           </div>
@@ -932,24 +909,20 @@ module.exports = {
   
   </html>`
 
-       var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msgs = {
             to: to,
-            subject: `User Query`,
-            html: html,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
+            subject: "User Query",
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msgs);
+        return true;
+
+
     },
 
     sendMailReplyFromAdmin: async (to, name, msg, question) => {
@@ -1079,10 +1052,10 @@ module.exports = {
                   <div style="display: flex; align-items: center; justify-content: center;">
                       
                           
-                      <h2 style="margin-bottom: 30px;">BinGold</h2>
+                      <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                   </div>
               </header>
-              <h2> Query Reply from Admin- BinGold </h2>
+              <h2> Query Reply from Admin- SIG Realtech </h2>
               
               <p>Dear ${name}👋</p>
  <p>We're writing to inform you that there is a reply for you query .</p>
@@ -1094,8 +1067,8 @@ module.exports = {
  <a type="button" class="contactbutton" href=""
      target="_blank">Contact Us</a>
 </div>
- <p>Best regards from BinGold Team,</p>
- <p>The BinGold Team</p>
+ <p>Best regards from SIG Realtech Team,</p>
+ <p>The SIG Realtech Team</p>
              
              <br>
           </div>
@@ -1105,28 +1078,23 @@ module.exports = {
   
   </html>`
 
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msgs = {
             to: to,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: `Query Reply`,
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msgs);
+        return true;
+
     },
 
     sendEmailOtp: async (email, otp, userName) => {
-        let html =`<!DOCTYPE html>
+        let html = `<!DOCTYPE html>
     <html lang="en">
     
     <head>
@@ -1251,12 +1219,12 @@ module.exports = {
                 <div style="display: flex; align-items: center; justify-content: center;">
                     
                         
-                    <h2 style="margin-bottom: 30px;">BinGold</h2>
+                    <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                 </div>
             </header>
-            <h2>OTP Verification for BinGold</h2>
+            <h2>OTP Verification for SIG Realtech</h2>
             <p>Dear ${userName}</p>
-            <p>Thank you for signing up with BinGold. To ensure the security of your account, we require you to
+            <p>Thank you for signing up with SIG Realtech. To ensure the security of your account, we require you to
                 verify your email address.</p>
             <p>Please use the following One-Time Password (OTP) to complete the verification process:</p>
             <div class="otp-code">
@@ -1264,14 +1232,14 @@ module.exports = {
             </div>
             <p>Please note that this OTP is valid for a limited time period (for 3 minutes). If you did not request this
                 verification, please disregard this email.</p>
-            <p>Thank you for choosing BinGold. If you have any questions or need further assistance, feel free to
+            <p>Thank you for choosing SIG Realtech. If you have any questions or need further assistance, feel free to
                 contact our support team.</p><br>
                 <div style="margin: 40px 0 50px;">
                 <a type="button" class="contactbutton" href=""
                     target="_blank">Contact Us</a>
             </div>
             <p>Best regards,</p>
-            <p>The BinGold Team</p><br>
+            <p>The SIG Realtech Team</p><br>
             </div>
             
         
@@ -1279,29 +1247,25 @@ module.exports = {
     </body>
     
     </html>`
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
-            subject: "Otp for verification",
-            html: html,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
+            subject: `Otp for verification`,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
+
+
 
     },
 
     sendEmailOtpLogin: async (email, otp) => {
-    let html = `<!DOCTYPE html>
+        let html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -1385,12 +1349,12 @@ module.exports = {
                 <div style="display: flex; align-items: center; justify-content: center;">
                     
                         
-                    <h2 style="margin-bottom: 30px;">BinGold</h2>
+                    <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                 </div>
             </header>
-            <h2>Login OTP for BinGold</h2>
+            <h2>Login OTP for SIG Realtech</h2>
             <p>Hello,</p>
-            <p>We received a request to log in to your BinGold account using this email address.</p>
+            <p>We received a request to log in to your SIG Realtech account using this email address.</p>
             <p>Please use the following One-Time Password (OTP) to proceed with the login:</p>
             <div class="otp-code">
                 <h3>${otp}</h3>
@@ -1398,33 +1362,27 @@ module.exports = {
             <p>This OTP is valid for only 3 minutes. If you did not attempt to log in, please ignore this message.</p>
             <p>For your safety, do not share this OTP with anyone.</p>
            
-            <p>Best regards,<br>The BinGold Team</p>
+            <p>Best regards,<br>The SIG Realtech Team</p>
         </div>
         
     </div>
 </body>
 </html>`;
 
-    var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
+        const msg = {
+            to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
+            subject: `Your Login OTP for SIG Realtech`,
+            html,
+        };
 
-    var mailOptions = {
-        from: '"BinGold" <info@aiiongold.net>',
-        to: email,
-        subject: "Your Login OTP for BinGold",
-        html: html,
-    };
+        await sgMail.send(msg);
+        return true;
 
-    return await transporter.sendMail(mailOptions);
-},
+    },
 
 
     sendEmailForWithdrawal: async (email, otp, userName) => {
@@ -1555,12 +1513,12 @@ module.exports = {
                 <div style="display: flex; align-items: center; justify-content: center;">
                     
                         
-                    <h2 style="margin-bottom: 30px;">BinGold</h2>
+                    <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                 </div>
             </header>
             <h2>OTP for Withdrawal Verification</h2>
             <p>Dear ${userName}</p>
-            <p>Thank you for signing up with BinGold. To ensure the security of your withdrawal, we require you to
+            <p>Thank you for signing up with SIG Realtech. To ensure the security of your withdrawal, we require you to
                 verify .</p>
             <p>Please use the following One-Time Password (OTP) to complete the verification process:</p>
             <div class="otp-code">
@@ -1568,19 +1526,19 @@ module.exports = {
             </div>
             <p>Please note that this OTP is valid for a limited time period (for 3 minutes). If you did not request this
                 verification, please disregard this email.</p>
-            <p>Thank you for choosing BinGold. If you have any questions or need further assistance, feel free to
+            <p>Thank you for choosing SIG Realtech. If you have any questions or need further assistance, feel free to
                 contact our support team.</p><br>
                 <div style="margin: 40px 0 50px;">
                 <a type="button" class="contactbutton" href=""
                     target="_blank">Contact Us</a>
             </div>
             <p>Best regards,</p>
-            <p>The BinGold Team</p><br>
+            <p>The SIG Realtech Team</p><br>
             </div>
             <div>
             <p style="font-size:13px; color: #9e9c9c;">Questions or faq? Contact us at <a
                     href="mailto:${"magnum@mailinator.com"}">Support@abc.com</a>. If you'd rather not receive this kind
-                of email, Don’t want any more emails from BinGold?<a
+                of email, Don’t want any more emails from SIG Realtech?<a
                 href="mailto:${"magnum@mailinator.com"}">Unsubscribe</a></p>
             
         
@@ -1589,24 +1547,20 @@ module.exports = {
     
     </html>
     `
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
-            subject: "Otp for withdrawal Verification",
-            html: html,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
+            subject: `Otp for withdrawal Verification`,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
+
+
 
     },
 
@@ -1738,12 +1692,12 @@ module.exports = {
                     <div style="display: flex; align-items: center; justify-content: center;">
                         
                             
-                        <h2 style="margin-bottom: 30px;">BinGold</h2>
+                        <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                     </div>
                 </header>
-                <h2>Reset OTP for BinGold!</h2>
+                <h2>Reset OTP for SIG Realtech!</h2>
                 <p>Dear ${userName},</p>
-                <p>We've received a request to reset the password for your BinGold account. To proceed with the password
+                <p>We've received a request to reset the password for your SIG Realtech account. To proceed with the password
                     reset process, please use the following One-Time Password (OTP):</p>
                 <div class="otp-code">
                     <h3>${otp}</h3>
@@ -1755,44 +1709,39 @@ module.exports = {
                 <p>For security reasons, we recommend keeping your OTP confidential and not sharing it with anyone. If you
                     need further assistance or have any concerns, please don't hesitate to contact our support team at
                     [Support Email].</p>
-                <p>Thank you for choosing BinGold. We're here to ensure a smooth and secure experience for all our
+                <p>Thank you for choosing SIG Realtech. We're here to ensure a smooth and secure experience for all our
                     players.</p><br>
                     <div style="margin: 40px 0 50px;">
                     <a type="button" class="contactbutton" href=""
                         target="_blank">Contact Us</a>
                 </div>
                 <p>Best regards,</p>
-                <p>The BinGold Team</p><br>
+                <p>The SIG Realtech Team</p><br>
             </div>
            
         </div>
     </body>
     
     </html>`
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
 
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Otp for reset password",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
 
     },
 
     sendEmail2FAOtp: async (email, status, name) => {
         let html =
-        `<!DOCTYPE html>
+            `<!DOCTYPE html>
         <html lang="en">
         
         <head>
@@ -1923,13 +1872,13 @@ module.exports = {
                         <div style="display: flex; align-items: center; justify-content: center;">
                             
                                 
-                            <h2 style="margin-bottom: 30px;">BinGold</h2>
+                            <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                         </div>
                     </header>
-                    <h2>Email Verification Status Update - BinGold </h2>
+                    <h2>Email Verification Status Update - SIG Realtech </h2>
                     
                     <p>Dear ${name}👋</p>
-       <p>We're writing to inform you that the email verification status for your account on BinGold  has been updated.</p>
+       <p>We're writing to inform you that the email verification status for your account on SIG Realtech  has been updated.</p>
                         <table style="width: 100%;">
                     <tr>
                         <td style="text-align: left;">Email Verification:</td>
@@ -1949,7 +1898,7 @@ module.exports = {
            target="_blank">Contact Us</a>
     </div>
        <p>Best regards,</p>
-       <p>The BinGold Team</p>
+       <p>The SIG Realtech Team</p>
                    
                    <br>
                 </div>
@@ -1959,24 +1908,20 @@ module.exports = {
         </body>
         
         </html>`
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Email Verification Status",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
+
+
     },
     sendEmailForWelcome: async (email, name) => {
         let html =
@@ -2105,15 +2050,15 @@ module.exports = {
                     <div style="display: flex; align-items: center; justify-content: center;">
                         
                             
-                        <h2 style="margin-bottom: 30px;">BinGold</h2>
+                        <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                     </div>
                 </header>
-               <h2> Welcome to BinGold!</h2>
+               <h2> Welcome to SIG Realtech!</h2>
 <p>Dear ${name},</p>
 
-<p>Welcome to BinGold! We're thrilled to have you join our gaming community. Get ready for an exciting adventure filled with thrilling games, engaging challenges, and endless fun!</p>
+<p>Welcome to SIG Realtech! We're thrilled to have you join our gaming community. Get ready for an exciting adventure filled with thrilling games, engaging challenges, and endless fun!</p>
 
-<p>Here's a quick overview of what you can expect from your BinGold experience:</p>
+<p>Here's a quick overview of what you can expect from your SIG Realtech experience:</p>
 
 <p>Explore a Variety of Games: Dive into a diverse collection of games ranging from action-packed adventures to brain-teasing puzzles. With new releases and updates regularly added, there's always something fresh to enjoy.</p>
 
@@ -2125,17 +2070,17 @@ module.exports = {
 
 <p>To kick-start your gaming journey, we've included a special bonus just for new players.</p>
 
-<p>Ready to start playing? Simply log in to your account and explore the world of BinGold today!</p>
+<p>Ready to start playing? Simply log in to your account and explore the world of SIG Realtech today!</p>
 
-<p>If you have any questions or need assistance, our support team is here to help. Feel free to reach out to us at support@BinGold.com anytime.</p>
+<p>If you have any questions or need assistance, our support team is here to help. Feel free to reach out to us at support@SIG Realtech.com anytime.</p>
 
-<p>Once again, welcome aboard, ${name}! Get ready to unleash your gaming potential and embark on epic adventures with BinGold</p>
+<p>Once again, welcome aboard, ${name}! Get ready to unleash your gaming potential and embark on epic adventures with SIG Realtech</p>
 <div style="margin: 40px 0 50px;">
 <a type="button" class="contactbutton" href=""
     target="_blank">Contact Us</a>
 </div>
 <p>Best regards,</p>
-<p>The BinGold Team</p>
+<p>The SIG Realtech Team</p>
                
                <br>
             </div>
@@ -2144,25 +2089,21 @@ module.exports = {
     </body>
     
     </html>`
-       var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
-            subject: "Welcome to BinGold!",
-            html: html,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
+            subject: "Welcome to SIG Realtech!",
+            html,
         };
-        return await transporter.sendMail(mailOptions);
-        
+
+        await sgMail.send(msg);
+        return true;
+
+
+
     },
 
     sendEmailForPasswordResetSuccess: async (email, name) => {
@@ -2292,25 +2233,25 @@ module.exports = {
                 <div style="display: flex; align-items: center; justify-content: center;">
                     
                         
-                    <h2 style="margin-bottom: 30px;">BinGold</h2>
+                    <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                 </div>
             </header>
-               <h2> Password Reset Successfully - BinGold!</h2>
+               <h2> Password Reset Successfully - SIG Realtech!</h2>
              <p>   Dear ${name},</p>
                 
-             <p> We're writing to inform you that the password for your BinGold account has been successfully reset. You can now log in using your new password and resume enjoying our games and features.</p>
+             <p> We're writing to inform you that the password for your SIG Realtech account has been successfully reset. You can now log in using your new password and resume enjoying our games and features.</p>
                 
              <p>  If you initiated this password reset request, you can disregard this email.</p>
                 
              <p>  If you did not initiate this password reset request, please contact our support team immediately at [Support Email] for further assistance.</p>
                 
-             <p> Thank you for choosing BinGold If you have any questions or encounter any issues, please don't hesitate to reach out to us.</p>
+             <p> Thank you for choosing SIG Realtech If you have any questions or encounter any issues, please don't hesitate to reach out to us.</p>
              <div style="margin: 40px 0 50px;">
              <a type="button" class="contactbutton" href=""
                  target="_blank">Contact Us</a>
          </div>
              <p>  Best regards,</p>
-             <p> The BinGold Team</p>
+             <p> The SIG Realtech Team</p>
                
                <br>
             </div>
@@ -2319,25 +2260,21 @@ module.exports = {
     </body>
     
     </html>`
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Password Reset Successfully",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
-        
+
+        await sgMail.send(msg);
+        return true;
+
+
+
     },
     sendEmailForPasswordChangeSuccess: async (email, name) => {
         let html =
@@ -2466,25 +2403,25 @@ module.exports = {
                 <div style="display: flex; align-items: center; justify-content: center;">
                     
                         
-                    <h2 style="margin-bottom: 30px;">BinGold</h2>
+                    <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                 </div>
             </header>
-               <h2> Password Change Successfully - BinGold!</h2>
+               <h2> Password Change Successfully - SIG Realtech!</h2>
              <p>   Dear ${name},</p>
                 
-             <p> We're writing to inform you that the password for your BinGold account has been successfully changed. You can now log in using your new password and resume enjoying our games and features.</p>
+             <p> We're writing to inform you that the password for your SIG Realtech account has been successfully changed. You can now log in using your new password and resume enjoying our games and features.</p>
                 
              <p>  If you initiated this password change request, you can disregard this email.</p>
                 
              <p>  If you did not initiate this password reset request, please contact our support team immediately at [Support Email] for further assistance.</p>
                 
-             <p> Thank you for choosing BinGold If you have any questions or encounter any issues, please don't hesitate to reach out to us.</p>
+             <p> Thank you for choosing SIG Realtech If you have any questions or encounter any issues, please don't hesitate to reach out to us.</p>
              <div style="margin: 40px 0 50px;">
              <a type="button" class="contactbutton" href=""
                  target="_blank">Contact Us</a>
          </div>
              <p>  Best regards,</p>
-             <p> The BinGold Team</p>
+             <p> The SIG Realtech Team</p>
                
                <br>
             </div>
@@ -2493,25 +2430,21 @@ module.exports = {
     </body>
     
     </html>`
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Password Change Successfully",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
-        
+
+        await sgMail.send(msg);
+        return true;
+
+
+
     },
     sendEmailForEnableGoogle2FA: async (email, name) => {
         let html =
@@ -2640,11 +2573,11 @@ module.exports = {
                     <div style="display: flex; align-items: center; justify-content: center;">
                         
                             
-                        <h2 style="margin-bottom: 30px;">BinGold</h2>
+                        <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                     </div>
                 </header>
                <h2> Google Authentication Verification</h2> 
-               <h2>  Activated- BinGold </h2>
+               <h2>  Activated- SIG Realtech </h2>
                 <p>Dear ${name}👋</p>
                 <p>To enhance the security of your account on STRING ARC, we have enabled Google Authentication. This additional layer of security helps protect your account from unauthorized access.</p>
                 
@@ -2654,7 +2587,7 @@ module.exports = {
                 
                 <p> Scan QR Code: Open the Google Authenticator app and scan the QR code </p>
                 
-                <p> Enter Verification Code: After scanning the QR code, enter the verification code provided by the app into the designated field on BinGold.</p>
+                <p> Enter Verification Code: After scanning the QR code, enter the verification code provided by the app into the designated field on SIG Realtech.</p>
                 
                 <p> If you have any questions or encounter any issues during the setup process, please contact our support team at [Support Email]. We're here to assist you with any inquiries you may have.</p>
                 
@@ -2664,7 +2597,7 @@ module.exports = {
                target="_blank">Contact Us</a>
        </div>
                 <p> Best regards,</p>
-                <p> The BinGold Team</p>
+                <p> The SIG Realtech Team</p>
                
                <br>
             </div>
@@ -2673,25 +2606,20 @@ module.exports = {
     </body>
     
     </html>`
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Google Authentication Verification",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
-        
+
+        await sgMail.send(msg);
+        return true;
+
+
     },
 
     sendEmailForBuyTicket: async (email, name, amount, walletAddress, time) => {
@@ -2839,13 +2767,13 @@ module.exports = {
                         <div style="display: flex; align-items: center; justify-content: center;">
                             
                                 
-                            <h2 style="margin-bottom: 30px;">BinGold</h2>
+                            <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                         </div>
                     </header>
                     <h2>Ticket Purchase Confirmation - </h2>
-                    <h2>BinGold</h2>
+                    <h2>SIG Realtech</h2>
                     <p>Dear ${name}👋</p>
-                    <p>We're writing to confirm that your ticket purchase on BinGold has been successfully processed</p>
+                    <p>We're writing to confirm that your ticket purchase on SIG Realtech has been successfully processed</p>
                        <p> using your wallet funds. Below are the details of your purchase:</p>
                     
         
@@ -2877,13 +2805,13 @@ module.exports = {
                     <p>If you have any questions or concerns regarding this ticket purchase, please feel free to contact our</p>
                     <p>  support team at [Support Email]. We're here to assist you with any inquiries you may have.</p>
         
-                    <p>Thank you for choosing BinGold. We hope you enjoy the event and have a great experience!</p>
+                    <p>Thank you for choosing SIG Realtech. We hope you enjoy the event and have a great experience!</p>
                     <div style="margin: 40px 0 50px;">
                     <a type="button" class="contactbutton" href=""
                         target="_blank">Contact Us</a>
                 </div>
                     <p>Best regards,</p>
-                    <p>The BinGold Team</p>
+                    <p>The SIG Realtech Team</p>
         
                     <br>
                 </div>
@@ -2892,24 +2820,20 @@ module.exports = {
         </body>
         
         </html>`
-       var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Ticket Purchase Confirmation",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
+
+
 
     },
 
@@ -3058,13 +2982,13 @@ module.exports = {
                             <div style="display: flex; align-items: center; justify-content: center;">
                                 
                                     
-                                <h2 style="margin-bottom: 30px;">BinGold</h2>
+                                <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                             </div>
                         </header>
                         <h2> Withdrawal Request Confirmation -</h2> 
-                                <h2> BinGold</h2>
+                                <h2> SIG Realtech</h2>
                                  <p>Dear ${name}👋</p>
-                                 <p> We're writing to confirm that your withdrawal request on BinGold has been successfully processed. Below are the details of your withdrawal </p>
+                                 <p> We're writing to confirm that your withdrawal request on SIG Realtech has been successfully processed. Below are the details of your withdrawal </p>
                               
             
             
@@ -3099,7 +3023,7 @@ module.exports = {
                             target="_blank">Contact Us</a>
                     </div>
                         <p>Best regards,</p>
-                        <p>The BinGold Team</p>
+                        <p>The SIG Realtech Team</p>
             
                         <br>
                     </div>
@@ -3108,25 +3032,20 @@ module.exports = {
             </body>
             
             </html>`
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Withdrawal Request Confirmation",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
-       
+
+        await sgMail.send(msg);
+        return true;
+
+
     },
 
     sendEmailCreateWithdrawRequest: async (email, name, amount, time, walletAddress,) => {
@@ -3274,13 +3193,13 @@ module.exports = {
                             <div style="display: flex; align-items: center; justify-content: center;">
                                 
                                     
-                                <h2 style="margin-bottom: 30px;">BinGold</h2>
+                                <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                             </div>
                         </header>
                         <h2> Withdrawal Request  -</h2> 
-                                <h2> BinGold</h2>
+                                <h2> SIG Realtech</h2>
                                  <p>Dear ${name}👋</p>
-                                 <p> We're writing to confirm that your withdrawal request on BinGold has been in processing. Below are the details of your withdrawal </p>
+                                 <p> We're writing to confirm that your withdrawal request on SIG Realtech has been in processing. Below are the details of your withdrawal </p>
                               
             
             
@@ -3315,7 +3234,7 @@ module.exports = {
                             target="_blank">Contact Us</a>
                     </div>
                         <p>Best regards,</p>
-                        <p>The BinGold Team</p>
+                        <p>The SIG Realtech Team</p>
             
                         <br>
                     </div>
@@ -3324,25 +3243,20 @@ module.exports = {
             </body>
             
             </html>`
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Withdrawal Request",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
-       
+
+        await sgMail.send(msg);
+        return true;
+
+
     },
     sendEmailRejectWithdrawRequest: async (email, name, reason,) => {
         let html =
@@ -3471,13 +3385,13 @@ module.exports = {
                     <div style="display: flex; align-items: center; justify-content: center;">
                         
                             
-                        <h2 style="margin-bottom: 30px;">BinGold</h2>
+                        <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                     </div>
                 </header>
                <h2> Withdrawal Request Rejected -</h2> 
-               <h2> BinGold</h2>
+               <h2> SIG Realtech</h2>
                 <p>Dear ${name}👋</p>
-                <p> We're writing to confirm that your withdrawal request on BinGold has been rejected. Below are the reason of your withdrawal rejection </p>
+                <p> We're writing to confirm that your withdrawal request on SIG Realtech has been rejected. Below are the reason of your withdrawal rejection </p>
                 <p>Reason is :${reason}</p>
                 <p>If you have any questions or concerns regarding this withdrawal, please feel free to contact our support team at [Support Email]. We're here to assist you with any inquiries you may have.</p>
                 
@@ -3487,7 +3401,7 @@ module.exports = {
                     target="_blank">Contact Us</a>
             </div>
                 <p>Best regards,</p>
-                <p>The BinGold Team</p>
+                <p>The SIG Realtech Team</p>
                
                <br>
             </div>
@@ -3496,25 +3410,20 @@ module.exports = {
     </body>
     
     </html>`
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "Withdrawal Request Rejected",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
-      
+
+        await sgMail.send(msg);
+        return true;
+
+
     },
 
     sendEmailOtpFOR2FA: async (email, otp, userName) => {
@@ -3645,12 +3554,12 @@ module.exports = {
                 <div style="display: flex; align-items: center; justify-content: center;">
                     
                         
-                    <h2 style="margin-bottom: 30px;">BinGold</h2>
+                    <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                 </div>
             </header>
-            <h2>OTP Verification for  Email 2FA BinGold</h2>
+            <h2>OTP Verification for  Email 2FA SIG Realtech</h2>
             <p>${userName}</p>
-            <p>Thank you for signing up with BinGold. To ensure the security of your account, we require you to
+            <p>Thank you for signing up with SIG Realtech. To ensure the security of your account, we require you to
                 verify your otp .</p>
             <p>Please use the following One-Time Password (OTP) to complete the verification process:</p>
             <div class="otp-code">
@@ -3658,14 +3567,14 @@ module.exports = {
             </div>
             <p>Please note that this OTP is valid for a limited time period (for 3 minutes). If you did not request this
                 verification, please disregard this email.</p>
-            <p>Thank you for choosing BinGold. If you have any questions or need further assistance, feel free to
+            <p>Thank you for choosing SIG Realtech. If you have any questions or need further assistance, feel free to
                 contact our support team.</p><br>
                 <div style="margin: 40px 0 50px;">
                 <a type="button" class="contactbutton" href=""
                     target="_blank">Contact Us</a>
             </div>
             <p>Best regards,</p>
-            <p>The BinGold Team</p><br>
+            <p>The SIG Realtech Team</p><br>
             </div>
             
         </div>
@@ -3673,24 +3582,20 @@ module.exports = {
     
     </html>
     `
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
             subject: "OTP Verification for Email 2FA",
-            html: html,
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
+
+
 
     },
     sendMailForDelete: async (to, name) => {
@@ -3819,13 +3724,13 @@ module.exports = {
                 <div style="display: flex; align-items: center; justify-content: center;">
                     
                         
-                    <h2 style="margin-bottom: 30px;">BinGold</h2>
+                    <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                 </div>
             </header>
-            <h2>Your BinGold  Account Permanent Suspended.</h2>
+            <h2>Your SIG Realtech  Account Permanent Suspended.</h2>
            <p> Dear ${name},</p>
             
-           <p> We regret to inform you that your account on BinGold has been permanent blocked by our administrative team .</p>
+           <p> We regret to inform you that your account on SIG Realtech has been permanent blocked by our administrative team .</p>
             
            <p> As a result, you will no longer be able to access your account or its associated features .</p>
             
@@ -3835,7 +3740,7 @@ module.exports = {
                target="_blank">Contact Us</a>
        </div>
            <p> Best regards,</p>
-           <p> The BinGold Team</p>
+           <p> The SIG Realtech Team</p>
             
            
             
@@ -3849,24 +3754,19 @@ module.exports = {
     </html>
     `
 
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: to,
-            subject: "Your BinGold  Account Permanent Suspended",
-            html: html,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
+            subject: "Your SIG Realtech  Account Permanent Suspended",
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
+
     },
 
     sendEmailForConnectWallet: async (email, name, wallet) => {
@@ -3996,19 +3896,19 @@ module.exports = {
                     <div style="display: flex; align-items: center; justify-content: center;">
                         
                             
-                        <h2 style="margin-bottom: 30px;">BinGold</h2>
+                        <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                     </div>
                 </header>
-               <h2> Wallet Connected to BinGold!</h2>
+               <h2> Wallet Connected to SIG Realtech!</h2>
 <p>Dear ${name},</p>
 
-<p>Your wallet  ${wallet} is connected with BinGold!</p>
+<p>Your wallet  ${wallet} is connected with SIG Realtech!</p>
 
 <p>If you want to change your connected wallet then contact with Admin</p>
 
 <p>We're thrilled to have you join our gaming community. Get ready for an exciting adventure filled with thrilling games, engaging challenges, and endless fun!</p>
 
-<p>Here's a quick overview of what you can expect from your BinGold experience:</p>
+<p>Here's a quick overview of what you can expect from your SIG Realtech experience:</p>
 
 <p>Explore a Variety of Games: Dive into a diverse collection of games ranging from action-packed adventures to brain-teasing puzzles. With new releases and updates regularly added, there's always something fresh to enjoy.</p>
 
@@ -4020,15 +3920,15 @@ module.exports = {
 
 <p>To kick-start your gaming journey, we've included a special bonus just for new players.</p>
 
-<p>Ready to start playing? Simply log in to your account and explore the world of BinGold today!</p>
+<p>Ready to start playing? Simply log in to your account and explore the world of SIG Realtech today!</p>
 
-<p>If you have any questions or need assistance, our support team is here to help. Feel free to reach out to us at support@BinGold.com anytime.</p>
+<p>If you have any questions or need assistance, our support team is here to help. Feel free to reach out to us at support@SIG Realtech.com anytime.</p>
 <div style="margin: 40px 0 50px;">
 <a type="button" class="contactbutton" href="contact"
     target="_blank">Contact Us</a>
 </div>
 <p>Best regards,</p>
-<p>The BinGold Team</p>
+<p>The SIG Realtech Team</p>
                
                <br>
             </div>
@@ -4037,25 +3937,20 @@ module.exports = {
     </body>
     
     </html>`
-        var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: email,
-            subject: "Wallet Connected BinGold!",
-            html: html,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
+            subject: "Wallet Connected SIG Realtech!",
+            html,
         };
-        return await transporter.sendMail(mailOptions);
-        
+
+        await sgMail.send(msg);
+        return true;
+
+
     },
 
     sendMailForLoginActivity: async (to, name) => {
@@ -4184,12 +4079,12 @@ module.exports = {
                 <div style="display: flex; align-items: center; justify-content: center;">
                     
                         
-                    <h2 style="margin-bottom: 30px;">BinGold</h2>
+                    <h2 style="margin-bottom: 30px;">SIG Realtech</h2>
                 </div>
             </header>
-            <h2>BinGold Login Activity Notification</h2>
+            <h2>SIG Realtech Login Activity Notification</h2>
             <p>Dear ${name}</p>
-           <p> We're reaching out to inform you about recent login activity on your BinGold account. Here are the details of the login activity:</p>
+           <p> We're reaching out to inform you about recent login activity on your SIG Realtech account. Here are the details of the login activity:</p>
             
            <p>  Date and Time:   [Date and Time of Login]</p>
            <p>  Location:               [Location of Login]</p>
@@ -4215,7 +4110,7 @@ module.exports = {
    
        
            <p>Best regards,</p>
-           <p> The BinGold Team</p>
+           <p> The SIG Realtech Team</p>
             
             
            
@@ -4227,24 +4122,18 @@ module.exports = {
     </html>
     `
 
-       var transporter = nodemailer.createTransport({
-        // service: config.get("nodemailer.service"),
-        host: "smtp-relay.brevo.com",
-        secure: false,
-  port: 587,
-        auth: {
-            user: config.get("nodemailer.email"),
-            pass: config.get("nodemailer.password"),
-        },
-    });
-
-        var mailOptions = {
-            from: '"BinGold" <info@aiiongold.net>',
+        const msg = {
             to: to,
-            subject: "BinGold Login Activity Notification",
-            html: html,
+            from: {
+                email: config.get("SENDGRID_FROM_EMAIL"),
+                name: "SIG Realtech",
+            },
+            subject: "SIG Realtech Login Activity Notification",
+            html,
         };
-        return await transporter.sendMail(mailOptions);
+
+        await sgMail.send(msg);
+        return true;
     },
     uploadImage(image) {
         return new Promise((resolve, reject) => {

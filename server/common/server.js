@@ -37,6 +37,12 @@ class ExpressServer {
 
     app.use(morgan('dev'))
     app.use(cookieParser());
+    // Temporary logging for debugging cookies and origins
+    app.use((req, res, next) => {
+      console.log('Request Origin:', req.headers.origin);
+      console.log('Cookies received:', req.cookies);
+      next();
+    });
     const allowedOrigins = [
   "http://localhost:2070",
   "http://127.0.0.1:2070",

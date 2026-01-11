@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup & Verify OTP</title>
+</head>
+<body>
+  <h1>Signup & Verify OTP Demo</h1>
+
+  <button id="signupBtn">Signup</button>
+  <button id="verifyOtpBtn">Verify OTP</button>
+
+  <script>
+    const API_BASE = "http://144.172.103.34:3004/api/v1/user";
+
+    // ================= Signup =================
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      const data = {
+        firstName: "John",
+        lastName: "Doe",
+        userName: "johndoe123",
+        password: "123456",
+        mobileNumber: "9999999999",
+        referralCode: "REF123"
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/signup`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(data),
+          credentials: "include" // important: automatically sends/receives cookies
+        });
+
+        const result = await res.json();
+        console.log("Signup Response:", result);
+        alert("Signup Response: " + JSON.stringify(result, null, 2));
+      } catch (err) {
+        console.error(err);
+        alert("Signup Error: " + err.message);
+      }
+    });
+
+    // ================= Verify OTP =================
+    document.getElementById("verifyOtpBtn").addEventListener("click", async () => {
+      const data = {
+        otp: "123456"
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/verifyOTP`, {
+          method: "PATCH",            // PATCH method
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(data),
+          credentials: "include"      // ✅ automatically sends token cookie
+        });
+
+        const result = await res.json();
+        console.log("Verify OTP Response:", result);
+        alert("Verify OTP Response: " + JSON.stringify(result, null, 2));
+      } catch (err) {
+        console.error(err);
+        alert("Verify OTP Error: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -7,7 +7,7 @@ import responseMessage from '../../assets/responseMessage';
 module.exports = {
   async verifyToken(req, res, next) {
   try {
-    console.log("Verifying token...",req.cookies.tokenreq.cookies);
+    // console.log("Verifying token...",req.cookies.token,req.cookies);
     const token =
       req.cookies.token ||
       req.headers.authorization.split(" ")[1];

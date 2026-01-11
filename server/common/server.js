@@ -39,16 +39,24 @@ class ExpressServer {
     app.use(cookieParser());
     app.use(
       cors({
-        origin: [
-          "http://localhost:3000",
-          "http://localhost:2070",
-          "https://your-frontend.com",
-        ],
+        origin: (origin, callback) => {
+          const allowedOrigins = [
+            "http://localhost:3000",
+            "http://localhost:2070",
+            "https://your-frontend.com",
+          ];
+          if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error("Not allowed by CORS"));
+          }
+        },
         credentials: true,
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization"],
       })
     );
+
 
   }
   router(routes) {

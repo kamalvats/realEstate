@@ -176,10 +176,16 @@ export class userController {
       });
       res.cookie("token", token, {
         httpOnly: true,
-        secure: false,
-        sameSite: "none",
-        maxAge: 24 * 60 * 60 * 1000,
+        secure: true,        // 🔥 required
+        sameSite: "none",    // 🔥 required
+        path: "/",
+        maxAge: 24 * 60 * 60 * 1000
       });
+
+
+      return res.status(200).json({ success: true });
+
+
 
       let results = {
         _id: result._id,

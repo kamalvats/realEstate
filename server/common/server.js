@@ -41,6 +41,7 @@ class ExpressServer {
   "http://localhost:2070",
   "http://127.0.0.1:2070",
   "http://192.168.16.163:2070",
+  "http://10.190.70.180:2070",
 ].filter(Boolean);
 
 const corsOptions = {

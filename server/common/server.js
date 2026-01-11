@@ -47,7 +47,13 @@ class ExpressServer {
 ].filter(Boolean);
 
 const corsOptions = {
-  origin: true, // Temporarily allow all origins for testing
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
   allowedHeaders: ["Content-Type", "Authorization","Accept"],

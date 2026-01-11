@@ -39,14 +39,17 @@ class ExpressServer {
     app.use(cookieParser());
     app.use(
       cors({
-        allowedHeaders: ["Content-Type", "token", "authorization"],
-        exposedHeaders: ["token", "authorization"],
-        origin: "*",
-        methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-        preflightContinue: false,
+        origin: [
+          "http://localhost:3000",
+          "http://localhost:2070",
+          "https://your-frontend.com",
+        ],
         credentials: true,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+        allowedHeaders: ["Content-Type", "Authorization"],
       })
     );
+
   }
   router(routes) {
     routes(app);

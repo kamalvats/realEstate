@@ -42,15 +42,12 @@ class ExpressServer {
   "http://127.0.0.1:2070",
   "http://192.168.16.163:2070",
   "http://10.190.70.180:2070",
-  "http://127.0.0.1:5500"
+  "http://127.0.0.1:5500",
+  "http://localhost:5500"
 ].filter(Boolean);
 
 const corsOptions = {
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true); // curl/postman
-    if (allowedOrigins.includes(origin)) return cb(null, true);
-    return cb(new Error(`CORS blocked: ${origin}`));
-  },
+  origin: true, // Temporarily allow all origins for testing
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
   allowedHeaders: ["Content-Type", "Authorization","Accept"],

@@ -37,25 +37,25 @@ class ExpressServer {
 
     app.use(morgan('dev'))
     app.use(cookieParser());
-    app.use(
-      cors({
-        origin: (origin, callback) => {
-          const allowedOrigins = [
-            "http://localhost:3000",
-            "http://localhost:2070",
-            "https://your-frontend.com",
-          ];
-          if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-          } else {
-            callback(new Error("Not allowed by CORS"));
-          }
-        },
-        credentials: true,
-        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-      })
-    );
+    const allowedOrigins = [
+  "http://localhost:2070",
+  "http://127.0.0.1:2070",
+  "http://192.168.16.163:2070",
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // curl/postman
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error(`CORS blocked: ${origin}`));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 
   }

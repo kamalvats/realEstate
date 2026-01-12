@@ -34,6 +34,15 @@ const {
   paginateSearch,
   multiUpdateLockedBal
 } = userServices;
+
+import { likedServices } from "../../services/liked";
+
+const {
+  createLiked,
+  findLiked,
+  deleteLiked,
+  getAllLiked,
+} = likedServices;
 class propertyController {
 
   /* ================= CREATE PROPERTY ================= */
@@ -74,6 +83,8 @@ class propertyController {
  *               type: string
  *             zone:
  *               type: string
+ *             prime:
+ *               type: boolean
  *             pincode:
  *               type: string
  *             address:
@@ -87,6 +98,8 @@ class propertyController {
  *               type: string
  *             builderName:
  *               type: string
+ *             builderName:
+ *               type: array
  *
  *             price:
  *               type: object
@@ -151,6 +164,7 @@ class propertyController {
       /* ================= CORE ================= */
       title: Joi.string().required(),
       description: Joi.string().optional(),
+      faq: Joi.array().optional(),
 
       type: Joi.string()
         .valid(
@@ -341,6 +355,7 @@ class propertyController {
           })
         )
         .optional(),
+      prime: Joi.boolean().required(),
     }
 
     try {
@@ -452,6 +467,8 @@ class propertyController {
  *               enum: [upcoming, available, sold, reserved]
  *             verified:
  *               type: boolean
+ *             faq:
+ *               type: array
  *
  *             city:
  *               type: string
@@ -575,6 +592,8 @@ class propertyController {
  *               type: boolean
  *             approachRoad:
  *               type: boolean
+ *             prime:
+ *               type: boolean
  *
  *             commercialType:
  *               type: string
@@ -673,6 +692,7 @@ class propertyController {
 
       title: Joi.string().optional(),
       description: Joi.string().optional(),
+      faq: Joi.array().optional(),
       type: Joi.string()
         .valid(
           "flat",
@@ -843,6 +863,7 @@ class propertyController {
           })
         )
         .optional(),
+      prime: Joi.boolean().optional(),
     }
 
     try {
@@ -1005,7 +1026,7 @@ class propertyController {
   /* ================= LIST PROPERTIES ================= */
   /**
  * @swagger
- * /property/admin/list:
+ * /property/token/list:
  *   get:
  *     tags:
  *       - ADMIN_PROPERTY
@@ -1109,6 +1130,10 @@ class propertyController {
  *       - name: limit
  *         in: query
  *         type: number
+ *
+ *       - name: prime
+ *         in: query
+ *         type: boolean
  *     responses:
  *       200:
  *         description: Returns success message
@@ -1117,7 +1142,7 @@ class propertyController {
   async listProperties(req, res, next) {
     const schema = {
       search: Joi.string().optional(),
-
+      prime: Joi.boolean().optional(),
       city: Joi.string().optional(),
       zone: Joi.string().optional(),
 
@@ -1166,9 +1191,7 @@ class propertyController {
       const validatedQuery = await Joi.validate(req.query, schema);
       let admin = await findUser({
         _id: req.userId,
-        userType: {
-          $ne: "USER"
-        },
+
         status: status.ACTIVE
       })
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
@@ -1177,6 +1200,19 @@ class propertyController {
 
       if (!list.docs.length) {
         throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
+      }
+
+      if (admin.userType == "USER") {
+        list.docs = JSON.parse(JSON.stringify(list.docs))
+        for (let i = 0; i < list.docs.length; i++) {
+          let findLike = await findLiked({
+            userId: admin._id,
+            propertyId: list.docs[i]._id
+          })
+          if (findLike) {
+            list.docs[i].liked = true
+          }
+        }
       }
 
       return res.json(
@@ -1290,6 +1326,10 @@ class propertyController {
  *       - name: limit
  *         in: query
  *         type: number
+ *
+ *       - name: prime
+ *         in: query
+ *         type: boolean
  *     responses:
  *       200:
  *         description: Returns success message
@@ -1298,6 +1338,7 @@ class propertyController {
   async listPropertiesLP(req, res, next) {
     const schema = {
       search: Joi.string().optional(),
+      prime: Joi.boolean().optional(),
 
       city: Joi.string().optional(),
       zone: Joi.string().optional(),
@@ -1440,6 +1481,62 @@ class propertyController {
         success: false,
         message: error.message,
       });
+    }
+  }
+
+  /**
+   * @swagger
+   * /property/likeUnlike:
+   *   put:
+   *     tags:
+   *     description: get his own profile details with getProfile API
+   *     produces:
+   *       - application/json
+   *     parameters:
+   *       - name: token
+   *         description: token
+   *         in: header
+   *         required: true
+   *       - name: propertyId
+   *         description: propertyId
+   *         in: query
+   *         required: true
+   *     responses:
+   *       200:
+   *         description: Returns success message
+   */
+  async likeUnlike(req, res, next) {
+    try {
+      const { propertyId, propertyStatus } = await Joi.validate(req.query, {
+        propertyId: Joi.string().required(),
+      });
+      let admin = await findUser({
+        _id: req.userId,
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
+
+      let findLike = await findLiked({
+        userId: req.userId,
+        propertyId: propertyId
+      })
+      if (findLike) {
+        await deleteLiked({
+          userId: req.userId,
+          propertyId: propertyId
+        })
+      } else {
+        await createLiked({
+          userId: req.userId,
+          propertyId: propertyId
+        })
+      }
+
+      return res.json(
+        new response({}, findLike ? "Property Unliked Successfully" : "Property Liked Successfully")
+      );
+    } catch (error) {
+      return next(error);
     }
   }
 }

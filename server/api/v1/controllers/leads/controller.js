@@ -88,7 +88,7 @@ class leadController {
 
       userId: Joi.string().optional(),
 
-      name: Joi.string().required(),
+      name: Joi.string().optional(),
       mobile: Joi.string().optional(),
       email: Joi.string().email().optional(),
 
@@ -112,6 +112,9 @@ class leadController {
             new response(alreadyPresent, "Email added successfully.")
           );
         }
+      }
+      if(req.userId){
+        validatedBody.userId = req.userId
       }
       const lead = await createLeads(validatedBody);
 
@@ -263,6 +266,79 @@ class leadController {
     }
   }
 
+  /**
+   * @swagger
+   * /lead/reSchedule:
+   *   put:
+   *     tags:
+   *       - USER_LEAD
+   *     description: Update lead status/details
+   *     produces:
+   *       - application/json
+   *     parameters:
+   *       - name: token
+   *         description: token
+   *         in: header
+   *         required: true
+   *       - name: leadId
+   *         description: leadId
+   *         in: formData
+   *         required: true
+   *       - name: preferredDate
+   *         description: preferredDate
+   *         in: formData
+   *         required: false
+   *       - name: preferredSlot
+   *         description: preferredSlot
+   *         in: formData
+   *         required: false
+   *     responses:
+   *       200:
+   *         description: Lead created successfully
+   */
+  async reSchedule(req, res, next) {
+    const schema = {
+      leadId: Joi.string().required(),
+      preferredDate: Joi.date().optional(),
+      preferredSlot: Joi.string().optional()
+    };
+
+    try {
+      const validatedBody = await Joi.validate(
+        { ...req.body },
+        schema
+      );
+      let admin = await findUser({
+        _id: req.userId,
+        userType: {
+          $ne: "USER"
+        },
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
+
+      const lead = await getLeads({
+        _id: validatedBody.leadId,
+        status: { $ne: DELETE },
+      });
+
+      if (!lead) {
+        throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
+      }
+
+      const updated = await updateLeads(
+        { _id: validatedBody.leadId },
+        validatedBody
+      );
+
+      return res.json(
+        new response(updated, responseMessage.UPDATE_SUCCESS)
+      );
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   /* ================= DELETE LEAD ================= */
   // /**
   //  * @swagger
@@ -305,7 +381,7 @@ class leadController {
   /* ================= LIST LEADS ================= */
   /**
    * @swagger
-   * /lead/admin/list:
+   * /lead/list:
    *   get:
    *     tags:
    *       - ADMIN_LEAD
@@ -353,13 +429,14 @@ class leadController {
       const validatedBody = await Joi.validate(req.query, schema);
       let admin = await findUser({
         _id: req.userId,
-        userType: {
-          $ne: "USER"
-        },
+        
         status: status.ACTIVE
       })
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
+      if(admin.userType=="USER"){
+        validatedBody.userId = admin._id
+      }
      
 
       if (validatedBody.propertyId) {
@@ -381,6 +458,8 @@ class leadController {
       return next(error);
     }
   }
+
+  
 }
 
 export default new leadController();

@@ -23,6 +23,8 @@ const PropertySchema = new Schema(
             index: true,
         },
 
+        faq:[],
+
         status: {
             type: String,
             enum: ["upcoming", "available", "sold", "reserved",],
@@ -211,7 +213,8 @@ const PropertySchema = new Schema(
         nearByConnectivity:[{
             name:{type:String},
             distance:{type:String}
-        }]
+        }],
+        prime:{type:Boolean,default:false}
 
 
     },

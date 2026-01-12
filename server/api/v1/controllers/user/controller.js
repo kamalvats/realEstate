@@ -183,7 +183,6 @@ export class userController {
       });
 
 
-      return res.status(200).json({ success: true });
 
 
 
@@ -191,6 +190,7 @@ export class userController {
         _id: result._id,
         email: result.email,
         userType: result.userType,
+        token : token
       };
 
       return res.json(

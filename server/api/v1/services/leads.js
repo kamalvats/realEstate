@@ -36,7 +36,9 @@ const leadsServices = {
             selfQuery,
             leadsStatus,
             assignedTo,
-            source
+            source,
+            propertyId,
+            userId
 
         } = validatedBody;
 
@@ -47,6 +49,33 @@ const leadsServices = {
                     status: { $ne: "Delete" },
                 },
             },
+            {
+                $lookup: {
+                    from: "property",
+                    localField: "propertyId",
+                    foreignField: "_id",
+                    as: "propertyData",
+                },
+            },
+            {
+                $unwind: {
+                    path: "$propertyData",
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $lookup: {
+                    from: "user",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userData",
+                },
+            },{
+                $unwind: {
+                    path: "$userData",
+                    preserveNullAndEmptyArrays: true,
+                },
+            }
         ];
         if (selfQuery) {
             query.push(selfQuery)
@@ -58,11 +87,27 @@ const leadsServices = {
             query.push({ $match: { source } });
         }
 
+        if(userId){
+            query.push({
+                $match: {
+                    userId: userId
+                }
+            });
+        }
+
 
         if (search) {
             query.push({
                 $match: {
                     name: { $regex: search, $options: "i" },
+                },
+            });
+        }
+
+        if (propertyId) {
+            query.push({
+                $match: {
+                    propertyId: propertyId,
                 },
             });
         }

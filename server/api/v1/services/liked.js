@@ -21,6 +21,10 @@ const likedServices = {
     deleteAllLiked: async () => {
         return await likedModel.deleteMany({});
       },
+
+      deleteLiked: async (query) => {
+        return await likedModel.findOneAndDelete(query);
+      },
     likedListPagination: async (validatedBody) => {
         let query = { status: { $ne: statuss.DELETE } };
         const {page, limit, search } = validatedBody;

@@ -9,8 +9,11 @@ export default Express.Router()
 
   /* ================= ADMIN ================= */
   .use(auth.verifyToken)
+  .post("/visit/create", controller.createLead)
+
 
   .get("/admin/view", controller.viewLead)
-  .get("/admin/list", controller.listLeads)
+  .get("/list", controller.listLeads)
   .put("/admin/update", controller.updateLead)
+  .put("/reSchedule", controller.reSchedule)
   // .delete("/admin/delete", controller.deleteLead);

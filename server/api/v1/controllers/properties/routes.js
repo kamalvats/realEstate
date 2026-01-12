@@ -12,7 +12,9 @@ export default Express.Router()
   .use(auth.verifyToken)
 
   .post("/admin/create", controller.createProperty)
-  .get("/admin/list", controller.listProperties)
+  .get("/token/list", controller.listProperties)
   .put("/admin/update", controller.updateProperty)
   .put("/admin/updatePropertyStatus", controller.updatePropertyStatus)
-  .delete("/admin/delete", controller.deleteProperty);
+  .delete("/admin/delete", controller.deleteProperty)
+  .put("/likeUnlike", controller.likeUnlike);
+

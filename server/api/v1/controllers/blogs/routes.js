@@ -14,5 +14,5 @@ export default Express.Router()
   .post("/admin/create", controller.createBlog)
   .get("/admin/list", controller.listBLOGS)
   .put("/admin/update", controller.updateBlog)
-  .put("/admin/updateBlogStatus", controller.updateBlogStatus)
+  .put("/admin/updateBlogStatus", controller.updateStatus)
   .delete("/admin/delete", controller.deleteBlog);

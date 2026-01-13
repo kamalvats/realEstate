@@ -98,7 +98,7 @@ class propertyController {
  *               type: string
  *             builderName:
  *               type: string
- *             builderName:
+ *             faq:
  *               type: array
  *
  *             price:
@@ -1134,6 +1134,10 @@ class propertyController {
  *       - name: prime
  *         in: query
  *         type: boolean
+ *
+ *       - name: zoneWise
+ *         in: query
+ *         type: boolean
  *     responses:
  *       200:
  *         description: Returns success message
@@ -1143,6 +1147,8 @@ class propertyController {
     const schema = {
       search: Joi.string().optional(),
       prime: Joi.boolean().optional(),
+
+      zoneWise: Joi.boolean().optional(),
       city: Joi.string().optional(),
       zone: Joi.string().optional(),
 
@@ -1330,6 +1336,10 @@ class propertyController {
  *       - name: prime
  *         in: query
  *         type: boolean
+ *
+ *       - name: zoneWise
+ *         in: query
+ *         type: boolean
  *     responses:
  *       200:
  *         description: Returns success message
@@ -1339,6 +1349,7 @@ class propertyController {
     const schema = {
       search: Joi.string().optional(),
       prime: Joi.boolean().optional(),
+      zoneWise: Joi.boolean().optional(),
 
       city: Joi.string().optional(),
       zone: Joi.string().optional(),

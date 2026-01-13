@@ -48,7 +48,8 @@ const propertiesServices = {
       toDate,
       page = 1,
       limit = 10,
-      propertyStatus
+      propertyStatus,
+      zoneWise
     } = filters;
 
     const pipeline = [];
@@ -82,13 +83,20 @@ const propertiesServices = {
           $or: [
             { title: { $regex: search, $options: "i" } },
             { description: { $regex: search, $options: "i" } },
+            { city: { $regex: search, $options: "i" } },
           ],
         },
       });
     }
 
     /* ================= BASIC FILTERS ================= */
-    if (city) pipeline.push({ $match: { city } });
+    if (city) pipeline.push({  $match: {
+          $or: [
+            { city: { $regex: city, $options: "i" } },
+            { zone: { $regex: city, $options: "i" } },
+          ],
+        },
+      }); 
     if (zone) pipeline.push({ $match: { zone } });
     if (type) pipeline.push({ $match: { type } });
     if (status) pipeline.push({ $match: { status } });
@@ -173,6 +181,17 @@ const propertiesServices = {
           },
         },
       });
+    }
+
+    if(zoneWise){
+      pipeline.push({
+    $group: {
+      _id: "$zone",
+      zone: { $first: "$zone" },
+      total: { $sum: 1 },
+      properties: { $push: "$$ROOT" },
+    },
+  });
     }
     let agg = propertiesModel.aggregate(pipeline);
     let options = {

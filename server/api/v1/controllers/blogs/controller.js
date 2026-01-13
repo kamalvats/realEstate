@@ -12,7 +12,7 @@ const {
   getBlog,
   updateBlog,
   blogAggSearch,
-} = BLOGSServices;
+} = blogServices;
 import {
   userServices
 } from "../../services/user";
@@ -318,7 +318,7 @@ class blogController {
    *       200:
    *         description: Returns success message
    */
-  async updatestatus(req, res, next) {
+  async updateStatus(req, res, next) {
     try {
       const { blogId, status } = await Joi.validate(req.query, {
         blogId: Joi.string().required(),

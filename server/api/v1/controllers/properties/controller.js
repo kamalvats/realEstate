@@ -76,8 +76,14 @@ class propertyController {
  *             status:
  *               type: string
  *               enum: [upcoming, available, sold, reserved]
+ *             propertyStatus:
+ *               type: string
+ *               enum: [ACTIVE, INACTIVE, DELETE]
  *             verified:
  *               type: boolean
+ *
+ *             faq:
+ *               type: array
  *
  *             city:
  *               type: string
@@ -98,8 +104,6 @@ class propertyController {
  *               type: string
  *             builderName:
  *               type: string
- *             faq:
- *               type: array
  *
  *             price:
  *               type: object
@@ -122,6 +126,39 @@ class propertyController {
  *             maintenanceCharges:
  *               type: number
  *
+ *             carpetArea:
+ *               type: object
+ *               properties:
+ *                 from:
+ *                   type: number
+ *                 to:
+ *                   type: number
+ *                 unit:
+ *                   type: string
+ *                   enum: [sqft, sqyd]
+ *
+ *             superArea:
+ *               type: object
+ *               properties:
+ *                 from:
+ *                   type: number
+ *                 to:
+ *                   type: number
+ *                 unit:
+ *                   type: string
+ *                   enum: [sqft, sqyd]
+ *
+ *             plotSize:
+ *               type: object
+ *               properties:
+ *                 from:
+ *                   type: number
+ *                 to:
+ *                   type: number
+ *                 unit:
+ *                   type: string
+ *                   enum: [sqyd, sqft, acre, bigha]
+ *
  *             bhk:
  *               type: array
  *               items:
@@ -135,6 +172,59 @@ class propertyController {
  *                     type: number
  *                   token:
  *                     type: number
+ *
+ *             floor:
+ *               type: number
+ *             totalFloors:
+ *               type: number
+ *
+ *             facing:
+ *               type: string
+ *               enum: [north, south, east, west, north-east, north-west]
+ *
+ *             furnishing:
+ *               type: string
+ *               enum: [unfurnished, semi-furnished, fully-furnished]
+ *
+ *             possessionType:
+ *               type: string
+ *               enum: [ready, date, quarter, under construction]
+ *             possessionDate:
+ *               type: string
+ *               format: date-time
+ *             possessionQuarter:
+ *               type: string
+ *               example: "Q1-2026"
+ *
+ *             roadWidth:
+ *               type: number
+ *             landUse:
+ *               type: string
+ *               enum: [residential, commercial, agricultural, industrial]
+ *             soilType:
+ *               type: string
+ *             water:
+ *               type: boolean
+ *             boundaryWall:
+ *               type: boolean
+ *             approachRoad:
+ *               type: boolean
+ *
+ *             commercialType:
+ *               type: string
+ *               enum: [shop, office, warehouse, showroom, industrial]
+ *             isLeased:
+ *               type: boolean
+ *
+ *             leaseDetails:
+ *               type: object
+ *               properties:
+ *                 yield:
+ *                   type: number
+ *                 tenureMonths:
+ *                   type: number
+ *                 rent:
+ *                   type: number
  *
  *             amenities:
  *               type: array
@@ -154,209 +244,261 @@ class propertyController {
  *                   isPrimary:
  *                     type: boolean
  *
+ *             videoAvailable:
+ *               type: boolean
+ *             virtualTourAvailable:
+ *               type: boolean
+ *
+ *             reraId:
+ *               type: string
+ *             registryStatus:
+ *               type: string
+ *               enum: [freehold, leasehold, registry_available, registry_pending]
+ *
+ *             legalDocs:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                   url:
+ *                     type: string
+ *
+ *             reservedUntil:
+ *               type: string
+ *               format: date-time
+ *             soldAt:
+ *               type: string
+ *               format: date-time
+ *
+ *             space:
+ *               type: array
+ *
+ *             keyHighlight:
+ *               type: array
+ *
+ *             nearByConnectivity:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                   distance:
+ *                     type: string
+ *
  *     responses:
  *       200:
  *         description: Property created successfully
  */
 
+
   async createProperty(req, res, next) {
     const schema = {
-      /* ================= CORE ================= */
-      title: Joi.string().required(),
-      description: Joi.string().optional(),
-      faq: Joi.array().optional(),
+    /* ================= CORE ================= */
+    title: Joi.string().required(),
+    description: Joi.string().optional(),
+    faq: Joi.array().optional(),
 
-      type: Joi.string()
-        .valid(
-          "flat",
-          "villa",
-          "plot/land",
-          "farm",
-          "commercial",
-          "apartment",
-          "builder_floor"
+    type: Joi.string()
+      .valid(
+        "flat",
+        "villa",
+        "plot/land",
+        "farm",
+        "commercial",
+        "apartment",
+        "builder_floor"
+      )
+      .required(),
+
+    status: Joi.string()
+      .valid("upcoming", "available", "sold", "reserved")
+      .optional(),
+
+    // ✅ Added (missing in Joi but present in swagger/schema)
+    propertyStatus: Joi.string()
+      .valid("ACTIVE", "INACTIVE", "DELETE")
+      .optional(),
+
+    verified: Joi.boolean().optional(),
+
+    /* ================= LOCATION ================= */
+    city: Joi.string().optional(),
+    zone: Joi.string().optional(),
+    pincode: Joi.string().optional(),
+    address: Joi.string().optional(),
+    latitude: Joi.number().optional(),
+    longitude: Joi.number().optional(),
+
+    /* ================= RELATIONS ================= */
+    projectName: Joi.string().optional(),
+    builderName: Joi.string().optional(),
+
+    /* ================= PRICING ================= */
+    price: Joi.object({
+      total: Joi.number().optional(),
+      perSqft: Joi.number().optional(),
+    }).optional(),
+
+    priceRange: Joi.object({
+      min: Joi.number().optional(),
+      max: Joi.number().optional(),
+    }).optional(),
+
+    tokenAmount: Joi.number().optional(),
+    maintenanceCharges: Joi.number().optional(),
+
+    /* ================= AREA ================= */
+    carpetArea: Joi.object({
+      from: Joi.number().optional(),
+      to: Joi.number().optional(),
+      unit: Joi.string().valid("sqft", "sqyd").optional(),
+    }).optional(),
+
+    superArea: Joi.object({
+      from: Joi.number().optional(),
+      to: Joi.number().optional(),
+      unit: Joi.string().valid("sqft", "sqyd").optional(),
+    }).optional(),
+
+    plotSize: Joi.object({
+      from: Joi.number().optional(),
+      to: Joi.number().optional(),
+      unit: Joi.string().valid("sqyd", "sqft", "acre", "bigha").optional(),
+    }).optional(),
+
+    /* ================= FLAT / VILLA ================= */
+    bhk: Joi.array()
+      .items(
+        Joi.object({
+          bhk: Joi.number().required(),
+          startPrice: Joi.number().optional(),
+          endPrice: Joi.number().optional(),
+          token: Joi.number().optional(),
+        })
+      )
+      .optional(),
+
+    floor: Joi.number().optional(),
+    totalFloors: Joi.number().optional(),
+
+    facing: Joi.string()
+      .valid(
+        "north",
+        "south",
+        "east",
+        "west",
+        "north-east",
+        "north-west"
+      )
+      .optional(),
+
+    furnishing: Joi.string()
+      .valid("unfurnished", "semi-furnished", "fully-furnished")
+      .optional(),
+
+    /* ================= POSSESSION ================= */
+    possessionType: Joi.string()
+      .valid("ready", "date", "quarter", "under construction")
+      .optional(),
+
+    possessionDate: Joi.date().optional(),
+    possessionQuarter: Joi.string().optional(),
+
+    /* ================= PLOT ================= */
+    roadWidth: Joi.number().optional(),
+    landUse: Joi.string()
+      .valid("residential", "commercial", "agricultural", "industrial")
+      .optional(),
+
+    soilType: Joi.string().optional(),
+    water: Joi.boolean().optional(),
+    boundaryWall: Joi.boolean().optional(),
+    approachRoad: Joi.boolean().optional(),
+
+    /* ================= COMMERCIAL ================= */
+    commercialType: Joi.string()
+      .valid("shop", "office", "warehouse", "showroom", "industrial")
+      .optional(),
+
+    isLeased: Joi.boolean().optional(),
+    leaseDetails: Joi.object({
+      yield: Joi.number().optional(),
+      tenureMonths: Joi.number().optional(),
+      rent: Joi.number().optional(),
+    }).optional(),
+
+    /* ================= AMENITIES ================= */
+    amenities: Joi.array().items(Joi.string()).optional(),
+
+    /* ================= MEDIA ================= */
+    media: Joi.array()
+      .items(
+        Joi.object({
+          type: Joi.string()
+            .valid("image", "video", "virtual_tour", "brochure")
+            .required(),
+          url: Joi.string().required(),
+          isPrimary: Joi.boolean().optional(),
+        })
+      )
+      .optional(),
+
+    videoAvailable: Joi.boolean().optional(),
+    virtualTourAvailable: Joi.boolean().optional(),
+
+    /* ================= LEGAL ================= */
+    reraId: Joi.string().optional(),
+    registryStatus: Joi.string()
+      .valid(
+        "freehold",
+        "leasehold",
+        "registry_available",
+        "registry_pending"
+      )
+      .optional(),
+
+    legalDocs: Joi.array()
+      .items(
+        Joi.object({
+          name: Joi.string().required(),
+          url: Joi.string().required(),
+        })
+      )
+      .optional(),
+
+    /* ================= AVAILABILITY ================= */
+    reservedUntil: Joi.date().optional(),
+    soldAt: Joi.date().optional(),
+
+    space: Joi.array()
+      .items(
+        Joi.string().valid(
+          "Servant Room",
+          "Family Lounge",
+          "Study Room",
+          "Private Garden/Lawn",
+          "Private Pool"
         )
-        .required(),
+      )
+      .optional(),
 
-      status: Joi.string()
-        .valid("upcoming", "available", "sold", "reserved")
-        .optional(),
+    keyHighlight: Joi.array().items(Joi.string()).optional(),
 
-      verified: Joi.boolean().optional(),
+    nearByConnectivity: Joi.array()
+      .items(
+        Joi.object({
+          name: Joi.string().required(),
+          distance: Joi.string().required(),
+        })
+      )
+      .optional(),
 
-      /* ================= LOCATION ================= */
-      city: Joi.string().optional(),
-      zone: Joi.string().optional(),
-      pincode: Joi.string().optional(),
-      address: Joi.string().optional(),
-      latitude: Joi.number().optional(),
-      longitude: Joi.number().optional(),
-
-      /* ================= RELATIONS ================= */
-      projectName: Joi.string().optional(),
-      builderName: Joi.string().optional(),
-
-      /* ================= PRICING ================= */
-      price: Joi.object({
-        total: Joi.number().optional(),
-        perSqft: Joi.number().optional(),
-      }).optional(),
-
-      priceRange: Joi.object({
-        min: Joi.number().optional(),
-        max: Joi.number().optional(),
-      }).optional(),
-
-      tokenAmount: Joi.number().optional(),
-      maintenanceCharges: Joi.number().optional(),
-
-      /* ================= AREA ================= */
-      carpetArea: Joi.object({
-        from: Joi.number().optional(),
-        to: Joi.number().optional(),
-        unit: Joi.string().valid("sqft", "sqyd").optional(),
-      }).optional(),
-
-      superArea: Joi.object({
-        from: Joi.number().optional(),
-        to: Joi.number().optional(),
-        unit: Joi.string().valid("sqft", "sqyd").optional(),
-      }).optional(),
-
-      plotSize: Joi.object({
-        from: Joi.number().optional(),
-        to: Joi.number().optional(),
-        unit: Joi.string().valid("sqyd", "sqft", "acre", "bigha").optional(),
-      }).optional(),
-
-      /* ================= FLAT / VILLA ================= */
-      bhk: Joi.array()
-        .items(
-          Joi.object({
-            bhk: Joi.number().required(),
-            startPrice: Joi.number().optional(),
-            endPrice: Joi.number().optional(),
-            token: Joi.number().optional(),
-          })
-        )
-        .optional(),
-
-      floor: Joi.number().optional(),
-      totalFloors: Joi.number().optional(),
-
-      facing: Joi.string()
-        .valid(
-          "north",
-          "south",
-          "east",
-          "west",
-          "north-east",
-          "north-west"
-        )
-        .optional(),
-
-      furnishing: Joi.string()
-        .valid("unfurnished", "semi-furnished", "fully-furnished")
-        .optional(),
-
-      /* ================= POSSESSION ================= */
-      possessionType: Joi.string()
-        .valid("ready", "date", "quarter", "under construction")
-        .optional(),
-
-      possessionDate: Joi.date().optional(),
-      possessionQuarter: Joi.string().optional(),
-
-      /* ================= PLOT ================= */
-      roadWidth: Joi.number().optional(),
-      landUse: Joi.string()
-        .valid("residential", "commercial", "agricultural", "industrial")
-        .optional(),
-
-      soilType: Joi.string().optional(),
-      water: Joi.boolean().optional(),
-      boundaryWall: Joi.boolean().optional(),
-      approachRoad: Joi.boolean().optional(),
-
-      /* ================= COMMERCIAL ================= */
-      commercialType: Joi.string()
-        .valid("shop", "office", "warehouse", "showroom", "industrial")
-        .optional(),
-
-      isLeased: Joi.boolean().optional(),
-      leaseDetails: Joi.object({
-        yield: Joi.number().optional(),
-        tenureMonths: Joi.number().optional(),
-        rent: Joi.number().optional(),
-      }).optional(),
-
-      /* ================= AMENITIES ================= */
-      amenities: Joi.array().items(Joi.string()).optional(),
-
-      /* ================= MEDIA ================= */
-      media: Joi.array()
-        .items(
-          Joi.object({
-            type: Joi.string()
-              .valid("image", "video", "virtual_tour", "brochure")
-              .required(),
-            url: Joi.string().required(),
-            isPrimary: Joi.boolean().optional(),
-          })
-        )
-        .optional(),
-
-      videoAvailable: Joi.boolean().optional(),
-      virtualTourAvailable: Joi.boolean().optional(),
-
-      /* ================= LEGAL ================= */
-      reraId: Joi.string().optional(),
-      registryStatus: Joi.string()
-        .valid(
-          "freehold",
-          "leasehold",
-          "registry_available",
-          "registry_pending"
-        )
-        .optional(),
-
-      legalDocs: Joi.array()
-        .items(
-          Joi.object({
-            name: Joi.string().required(),
-            url: Joi.string().required(),
-          })
-        )
-        .optional(),
-
-      /* ================= AVAILABILITY ================= */
-      reservedUntil: Joi.date().optional(),
-      soldAt: Joi.date().optional(),
-
-      space: Joi.array()
-        .items(
-          Joi.string().valid(
-            "Servant Room",
-            "Family Lounge",
-            "Study Room",
-            "Private Garden/Lawn",
-            "Private Pool"
-          )
-        )
-        .optional(),
-
-      keyHighlight: Joi.array().items(Joi.string()).optional(),
-
-      nearByConnectivity: Joi.array()
-        .items(
-          Joi.object({
-            name: Joi.string().required(),
-            distance: Joi.string().required(),
-          })
-        )
-        .optional(),
-      prime: Joi.boolean().required(),
-    }
+    // ✅ prime is present in swagger + schema, keep required if you want
+    prime: Joi.boolean().required(),
+  };
 
     try {
       const validatedBody = await Joi.validate(req.body, schema);
@@ -455,6 +597,7 @@ class propertyController {
  *           properties:
  *             propertyId:
  *               type: string
+ *
  *             title:
  *               type: string
  *             description:
@@ -465,6 +608,11 @@ class propertyController {
  *             status:
  *               type: string
  *               enum: [upcoming, available, sold, reserved]
+ *
+ *             propertyStatus:
+ *               type: string
+ *               enum: [ACTIVE, INACTIVE, DELETE]
+ *
  *             verified:
  *               type: boolean
  *             faq:
@@ -633,7 +781,6 @@ class propertyController {
  *             virtualTourAvailable:
  *               type: boolean
  *
- *             reraId:
  *               type: string
  *             registryStatus:
  *               type: string
@@ -686,185 +833,206 @@ class propertyController {
  *       200:
  *         description: Property updated successfully
  */
+
   async updateProperty(req, res, next) {
     const schema = {
-      propertyId: Joi.string().required(),
+    propertyId: Joi.string().required(),
 
-      title: Joi.string().optional(),
-      description: Joi.string().optional(),
-      faq: Joi.array().optional(),
-      type: Joi.string()
-        .valid(
-          "flat",
-          "villa",
-          "plot/land",
-          "farm",
-          "commercial",
-          "apartment",
-          "builder_floor"
+    /* ================= CORE ================= */
+    title: Joi.string().optional(),
+    description: Joi.string().optional(),
+    faq: Joi.array().optional(),
+
+    type: Joi.string()
+      .valid(
+        "flat",
+        "villa",
+        "plot/land",
+        "farm",
+        "commercial",
+        "apartment",
+        "builder_floor"
+      )
+      .optional(),
+
+    status: Joi.string()
+      .valid("upcoming", "available", "sold", "reserved")
+      .optional(),
+
+    // ✅ Added missing field (Swagger + Schema)
+    propertyStatus: Joi.string()
+      .valid("ACTIVE", "INACTIVE", "DELETE")
+      .optional(),
+
+    verified: Joi.boolean().optional(),
+
+    /* ================= LOCATION ================= */
+    city: Joi.string().optional(),
+    zone: Joi.string().optional(),
+    pincode: Joi.string().optional(),
+    address: Joi.string().optional(),
+    latitude: Joi.number().optional(),
+    longitude: Joi.number().optional(),
+
+    /* ================= RELATIONS ================= */
+    projectName: Joi.string().optional(),
+    builderName: Joi.string().optional(),
+
+    /* ================= PRICING ================= */
+    price: Joi.object({
+      total: Joi.number().optional(),
+      perSqft: Joi.number().optional(),
+    }).optional(),
+
+    priceRange: Joi.object({
+      min: Joi.number().optional(),
+      max: Joi.number().optional(),
+    }).optional(),
+
+    tokenAmount: Joi.number().optional(),
+    maintenanceCharges: Joi.number().optional(),
+
+    /* ================= AREA ================= */
+    carpetArea: Joi.object({
+      from: Joi.number().optional(),
+      to: Joi.number().optional(),
+      unit: Joi.string().valid("sqft", "sqyd").optional(),
+    }).optional(),
+
+    superArea: Joi.object({
+      from: Joi.number().optional(),
+      to: Joi.number().optional(),
+      unit: Joi.string().valid("sqft", "sqyd").optional(),
+    }).optional(),
+
+    plotSize: Joi.object({
+      from: Joi.number().optional(),
+      to: Joi.number().optional(),
+      unit: Joi.string().valid("sqyd", "sqft", "acre", "bigha").optional(),
+    }).optional(),
+
+    /* ================= FLAT / VILLA ================= */
+    bhk: Joi.array()
+      .items(
+        Joi.object({
+          bhk: Joi.number().required(),
+          startPrice: Joi.number().optional(),
+          endPrice: Joi.number().optional(),
+          token: Joi.number().optional(),
+        })
+      )
+      .optional(),
+
+    floor: Joi.number().optional(),
+    totalFloors: Joi.number().optional(),
+
+    facing: Joi.string()
+      .valid("north", "south", "east", "west", "north-east", "north-west")
+      .optional(),
+
+    furnishing: Joi.string()
+      .valid("unfurnished", "semi-furnished", "fully-furnished")
+      .optional(),
+
+    /* ================= POSSESSION ================= */
+    possessionType: Joi.string()
+      .valid("ready", "date", "quarter", "under construction")
+      .optional(),
+
+    possessionDate: Joi.date().optional(),
+    possessionQuarter: Joi.string().optional(),
+
+    /* ================= PLOT ================= */
+    roadWidth: Joi.number().optional(),
+    landUse: Joi.string()
+      .valid("residential", "commercial", "agricultural", "industrial")
+      .optional(),
+
+    soilType: Joi.string().optional(),
+    water: Joi.boolean().optional(),
+    boundaryWall: Joi.boolean().optional(),
+    approachRoad: Joi.boolean().optional(),
+
+    /* ================= COMMERCIAL ================= */
+    commercialType: Joi.string()
+      .valid("shop", "office", "warehouse", "showroom", "industrial")
+      .optional(),
+
+    isLeased: Joi.boolean().optional(),
+    leaseDetails: Joi.object({
+      yield: Joi.number().optional(),
+      tenureMonths: Joi.number().optional(),
+      rent: Joi.number().optional(),
+    }).optional(),
+
+    /* ================= AMENITIES ================= */
+    amenities: Joi.array().items(Joi.string()).optional(),
+
+    /* ================= MEDIA ================= */
+    media: Joi.array()
+      .items(
+        Joi.object({
+          type: Joi.string()
+            .valid("image", "video", "virtual_tour", "brochure")
+            .required(),
+          url: Joi.string().required(),
+          isPrimary: Joi.boolean().optional(),
+        })
+      )
+      .optional(),
+
+    videoAvailable: Joi.boolean().optional(),
+    virtualTourAvailable: Joi.boolean().optional(),
+
+    /* ================= LEGAL ================= */
+    reraId: Joi.string().optional(),
+    registryStatus: Joi.string()
+      .valid(
+        "freehold",
+        "leasehold",
+        "registry_available",
+        "registry_pending"
+      )
+      .optional(),
+
+    legalDocs: Joi.array()
+      .items(
+        Joi.object({
+          name: Joi.string().required(),
+          url: Joi.string().required(),
+        })
+      )
+      .optional(),
+
+    /* ================= AVAILABILITY ================= */
+    reservedUntil: Joi.date().optional(),
+    soldAt: Joi.date().optional(),
+
+    space: Joi.array()
+      .items(
+        Joi.string().valid(
+          "Servant Room",
+          "Family Lounge",
+          "Study Room",
+          "Private Garden/Lawn",
+          "Private Pool"
         )
-        .optional(),
+      )
+      .optional(),
 
-      status: Joi.string()
-        .valid("upcoming", "available", "sold", "reserved")
-        .optional(),
+    keyHighlight: Joi.array().items(Joi.string()).optional(),
 
-      verified: Joi.boolean().optional(),
+    nearByConnectivity: Joi.array()
+      .items(
+        Joi.object({
+          name: Joi.string().required(),
+          distance: Joi.string().required(),
+        })
+      )
+      .optional(),
 
-      city: Joi.string().optional(),
-      zone: Joi.string().optional(),
-      pincode: Joi.string().optional(),
-      address: Joi.string().optional(),
-      latitude: Joi.number().optional(),
-      longitude: Joi.number().optional(),
-
-      projectName: Joi.string().optional(),
-      builderName: Joi.string().optional(),
-
-      price: Joi.object({
-        total: Joi.number().optional(),
-        perSqft: Joi.number().optional(),
-      }).optional(),
-
-      priceRange: Joi.object({
-        min: Joi.number().optional(),
-        max: Joi.number().optional(),
-      }).optional(),
-
-      tokenAmount: Joi.number().optional(),
-      maintenanceCharges: Joi.number().optional(),
-
-      carpetArea: Joi.object({
-        from: Joi.number().optional(),
-        to: Joi.number().optional(),
-        unit: Joi.string().valid("sqft", "sqyd").optional(),
-      }).optional(),
-
-      superArea: Joi.object({
-        from: Joi.number().optional(),
-        to: Joi.number().optional(),
-        unit: Joi.string().valid("sqft", "sqyd").optional(),
-      }).optional(),
-
-      plotSize: Joi.object({
-        from: Joi.number().optional(),
-        to: Joi.number().optional(),
-        unit: Joi.string().valid("sqyd", "sqft", "acre", "bigha").optional(),
-      }).optional(),
-
-      bhk: Joi.array()
-        .items(
-          Joi.object({
-            bhk: Joi.number().required(),
-            startPrice: Joi.number().optional(),
-            endPrice: Joi.number().optional(),
-            token: Joi.number().optional(),
-          })
-        )
-        .optional(),
-
-      floor: Joi.number().optional(),
-      totalFloors: Joi.number().optional(),
-
-      facing: Joi.string()
-        .valid("north", "south", "east", "west", "north-east", "north-west")
-        .optional(),
-
-      furnishing: Joi.string()
-        .valid("unfurnished", "semi-furnished", "fully-furnished")
-        .optional(),
-
-      possessionType: Joi.string()
-        .valid("ready", "date", "quarter", "under construction")
-        .optional(),
-
-      possessionDate: Joi.date().optional(),
-      possessionQuarter: Joi.string().optional(),
-
-      roadWidth: Joi.number().optional(),
-      landUse: Joi.string()
-        .valid("residential", "commercial", "agricultural", "industrial")
-        .optional(),
-
-      soilType: Joi.string().optional(),
-      water: Joi.boolean().optional(),
-      boundaryWall: Joi.boolean().optional(),
-      approachRoad: Joi.boolean().optional(),
-
-      commercialType: Joi.string()
-        .valid("shop", "office", "warehouse", "showroom", "industrial")
-        .optional(),
-
-      isLeased: Joi.boolean().optional(),
-      leaseDetails: Joi.object({
-        yield: Joi.number().optional(),
-        tenureMonths: Joi.number().optional(),
-        rent: Joi.number().optional(),
-      }).optional(),
-
-      amenities: Joi.array().items(Joi.string()).optional(),
-
-      media: Joi.array()
-        .items(
-          Joi.object({
-            type: Joi.string()
-              .valid("image", "video", "virtual_tour", "brochure")
-              .required(),
-            url: Joi.string().required(),
-            isPrimary: Joi.boolean().optional(),
-          })
-        )
-        .optional(),
-
-      videoAvailable: Joi.boolean().optional(),
-      virtualTourAvailable: Joi.boolean().optional(),
-
-      reraId: Joi.string().optional(),
-      registryStatus: Joi.string()
-        .valid(
-          "freehold",
-          "leasehold",
-          "registry_available",
-          "registry_pending"
-        )
-        .optional(),
-
-      legalDocs: Joi.array()
-        .items(
-          Joi.object({
-            name: Joi.string().required(),
-            url: Joi.string().required(),
-          })
-        )
-        .optional(),
-
-      reservedUntil: Joi.date().optional(),
-      soldAt: Joi.date().optional(),
-
-      space: Joi.array()
-        .items(
-          Joi.string().valid(
-            "Servant Room",
-            "Family Lounge",
-            "Study Room",
-            "Private Garden/Lawn",
-            "Private Pool"
-          )
-        )
-        .optional(),
-
-      keyHighlight: Joi.array().items(Joi.string()).optional(),
-
-      nearByConnectivity: Joi.array()
-        .items(
-          Joi.object({
-            name: Joi.string().required(),
-            distance: Joi.string().required(),
-          })
-        )
-        .optional(),
-      prime: Joi.boolean().optional(),
-    }
+    prime: Joi.boolean().optional(),
+  };
 
     try {
       const validatedBody = await Joi.validate(req.body, schema);

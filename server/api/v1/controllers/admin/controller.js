@@ -391,9 +391,9 @@ export class adminController {
       }
 
 
-      if (userResult.otp != otp) {
-        throw apiError.badRequest(responseMessage.INCORRECT_OTP);
-      }
+      // if (userResult.otp != otp) {
+      //   throw apiError.badRequest(responseMessage.INCORRECT_OTP);
+      // }
       var updateResult = await updateUser({
         _id: userResult._id
       }, {

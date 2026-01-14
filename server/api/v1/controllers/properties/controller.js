@@ -43,6 +43,13 @@ const {
   deleteLiked,
   getAllLiked,
 } = likedServices;
+
+const Razorpay = require("razorpay");
+
+const razorpay = new Razorpay({
+  key_id: "rzp_test_Rycjr1tUKovGmf",
+  key_secret: "XpnnQy5EcWIdpC6kRw3vHw8Z",
+});
 class propertyController {
 
   /* ================= CREATE PROPERTY ================= */
@@ -1713,6 +1720,77 @@ class propertyController {
 
       return res.json(
         new response({}, findLike ? "Property Unliked Successfully" : "Property Liked Successfully")
+      );
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  /**
+ * @swagger
+ * /property/listLiked:
+ *   get:
+ *     tags:
+ *       - ADMIN_PROPERTY
+ *     description: Property list with advanced filters
+ *     parameters:
+ *       - name: token
+ *         in: header
+ *         required: true
+ *         type: string
+ *
+ *       - name: search
+ *         in: query
+ *         type: string
+ *
+ *       - name: fromDate
+ *         in: query
+ *         type: string
+ *
+ *       - name: toDate
+ *         in: query
+ *         type: string
+ *
+ *       - name: page
+ *         in: query
+ *         type: number
+ *
+ *       - name: limit
+ *         in: query
+ *         type: number
+ *     responses:
+ *       200:
+ *         description: Returns success message
+ */
+
+  async listPropertiesLiked(req, res, next) {
+    const schema = {
+      search: Joi.string().optional(),
+
+      fromDate: Joi.date().optional(),
+      toDate: Joi.date().optional(),
+
+      page: Joi.number().optional(),
+      limit: Joi.number().optional(),
+    }
+
+    try {
+      const validatedQuery = await Joi.validate(req.query, schema);
+      let admin = await findUser({
+        _id: req.userId,
+
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
+
+      validatedQuery.status = "ACTIVE"
+      const list = await propertiesAggSearch(validatedQuery);
+
+      if (!list.docs.length) {
+        throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
+      }
+      return res.json(
+        new response(list, responseMessage.DATA_FOUND)
       );
     } catch (error) {
       return next(error);

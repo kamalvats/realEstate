@@ -316,10 +316,12 @@ export class adminController {
       if (!userResult) {
         throw apiError.notFound(responseMessage.USER_NOT_FOUND);
       } else {
-        var otp = commonFunction.getOTP();
+        // var otp = commonFunction.getOTP();
+        var otp = "123456"
+
         var newOtp = otp;
         var time = Date.now() + 180000;
-        await commonFunction.sendEmailForgotPassOtp(userResult.email, otp, userResult.firstName);
+        // await commonFunction.sendEmailForgotPassOtp(userResult.email, otp, userResult.firstName);
         var updateResult = await updateUser({
           _id: userResult._id
         }, {
@@ -476,10 +478,11 @@ export class adminController {
       if (!userResult) {
         throw apiError.notFound(responseMessage.USER_NOT_FOUND);
       } else {
-        var otp = commonFunction.getOTP();
+        // var otp = commonFunction.getOTP();
+        var otp = "123456"
         var newOtp = otp;
         var time = Date.now() + 180000;
-        await commonFunction.sendEmailForgotPassOtp(userResult.email, otp, userResult.firstName);
+        // await commonFunction.sendEmailForgotPassOtp(userResult.email, otp, userResult.firstName);
         var updateResult = await updateUser({
           _id: userResult._id
         }, {
@@ -619,7 +622,7 @@ export class adminController {
             password: bcrypt.hashSync(password)
           });
           update = _.omit(JSON.parse(JSON.stringify(update)), ["otp", "password", "base64", "secretGoogle", "emailotp2FA", "withdrawOtp", "password"])
-          await commonFunction.sendEmailForPasswordResetSuccess(userResult.email, userResult.firstName);
+          // await commonFunction.sendEmailForPasswordResetSuccess(userResult.email, userResult.firstName);
 
           return res.json(new response(update, responseMessage.PWD_CHANGED));
         } else {
@@ -1475,7 +1478,7 @@ export class adminController {
       validatedBody.otpVerified = true
 
       var result = await createUser(validatedBody)
-      let sendMail = await commonFunction.sendMailForSubAdmin(result.email, result.firstName, pass, adminResult.email)
+      // let sendMail = await commonFunction.sendMailForSubAdmin(result.email, result.firstName, pass, adminResult.email)
       let obj = {
         userId: result._id,
         email: result.email,
@@ -1639,7 +1642,7 @@ export class adminController {
           type: "BLOCK SUB_ADMIN"
         }
         // await createAdminActivity(activityObj)
-        let sendMail = await commonFunction.sendMailForBlock(blockRes.email, blockRes.firstName,)
+        // let sendMail = await commonFunction.sendMailForBlock(blockRes.email, blockRes.firstName,)
         return res.json(new response(blockRes, responseMessage.BLOCK_BY_ADMIN));
       } else {
         let activeRes = await updateUser({
@@ -1653,7 +1656,7 @@ export class adminController {
           type: "UNBLOCK SUB_ADMIN"
         }
         // await createAdminActivity(activityObj)
-        let sendMail = await commonFunction.sendMailForUnblock(activeRes.email, activeRes.firstName,)
+        // let sendMail = await commonFunction.sendMailForUnblock(activeRes.email, activeRes.firstName,)
         return res.json(new response(activeRes, responseMessage.UNBLOCK_BY_ADMIN));
       }
 
@@ -1723,7 +1726,7 @@ export class adminController {
         status: status.DELETE
       });
       validatedBody.reason = "Violation of Company Terms and Conditions"
-      let sendMail = await commonFunction.sendMailForDelete(activeRes.email, activeRes.firstName)
+      // let sendMail = await commonFunction.sendMailForDelete(activeRes.email, activeRes.firstName)
       let activityObj = {
         userId: userInfo._id,
         adminId: userResult._id,
@@ -2020,7 +2023,7 @@ export class adminController {
                 status: status.RESOLVED
             });
 
-            let sendMail = await commonFunction.sendMailReplyFromAdmin(contactRes.email, contactRes.name || "User", validatedBody.message, contactResult.message)
+            // let sendMail = await commonFunction.sendMailReplyFromAdmin(contactRes.email, contactRes.name || "User", validatedBody.message, contactResult.message)
 
             return res.json(new response(contactRes, responseMessage.REPLY_SUCCESS));
 

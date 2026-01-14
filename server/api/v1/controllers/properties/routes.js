@@ -16,5 +16,8 @@ export default Express.Router()
   .put("/admin/update", controller.updateProperty)
   .put("/admin/updatePropertyStatus", controller.updatePropertyStatus)
   .delete("/admin/delete", controller.deleteProperty)
-  .put("/likeUnlike", controller.likeUnlike);
+  .put("/likeUnlike", controller.likeUnlike)
+  .post("/book",controller.createPaymentOrder)
+  .get("/listLiked", controller.listPropertiesLiked)
+
 

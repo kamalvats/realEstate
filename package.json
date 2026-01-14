@@ -45,6 +45,7 @@
     "nodemailer": "^6.7.1",
     "nodemon": "^3.0.3",
     "qrcode": "^1.5.3",
+    "razorpay": "^2.9.6",
     "sib-api-v3-sdk": "^8.5.0",
     "speakeasy": "^2.0.0",
     "swagger-jsdoc": "^6.1.0",

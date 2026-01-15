@@ -126,6 +126,13 @@ export class adminController {
           token: token,
         };
       }
+       res.cookie("token", token, {
+        httpOnly: true,
+        secure: true,        // 🔥 required
+        sameSite: "none",    // 🔥 required
+        path: "/",
+        maxAge: 24 * 60 * 60 * 1000
+      });
       return res.json(new response(results, "Otp send to your email. Please verify and login."));
     } catch (error) {
       console.log(error);

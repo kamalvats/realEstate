@@ -60,7 +60,7 @@ const corsOptions = {
   //     callback(new Error('Not allowed by CORS'));
   //   }
   // },
-  // credentials: true,
+  credentials: true,
   origin: '*',
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
   allowedHeaders: ["Content-Type", "Authorization","Accept"],

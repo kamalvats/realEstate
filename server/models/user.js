@@ -6,6 +6,7 @@ import status from "../enums/status";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { type } from "joi/lib/types/object";
+import { profile } from "console";
 
 var userModel = new Schema(
   {
@@ -63,6 +64,7 @@ var userModel = new Schema(
     type: [Number],
   },
 },
+profileImage:{type:String},
 
   },
 

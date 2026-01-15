@@ -1185,7 +1185,11 @@ export class userController {
      *       - name: preferredArea
      *         description: preferredArea
      *         in: formData
-     *         required: 
+     *         required: false
+     *       - name: profileImage
+     *         description: profileImage
+     *         in: formData
+     *         required: false
      *     responses:
      *       200:
      *         description: Returns success message
@@ -1199,6 +1203,7 @@ export class userController {
       budgetEnd: Joi.boolean().optional(),
       email: Joi.boolean().optional(),
       address: Joi.boolean().optional(),
+      profileImage: Joi.boolean().optional(),
     };
     try {
       if (req.body.email) {

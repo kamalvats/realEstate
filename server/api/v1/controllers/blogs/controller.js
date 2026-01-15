@@ -103,7 +103,6 @@ class blogController {
 
       const blog = await createBlog({
         ...validatedBody,
-        status: validatedBody.status || "available",
       });
 
       return res.json(

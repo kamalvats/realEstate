@@ -300,7 +300,7 @@ class blogController {
 
   /**
    * @swagger
-   * /blog/admin/updatestatus:
+   * /blog/admin/updateBlogStatus:
    *   put:
    *     tags:
    *     description: get his own profile details with getProfile API
@@ -334,7 +334,7 @@ class blogController {
         userType: {
           $ne: "USER"
         },
-        status: status.ACTIVE
+        status: "ACTIVE"
       })
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 

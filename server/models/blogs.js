@@ -1,7 +1,8 @@
-const mongoose = require("mongoose");
-const mongoosePaginate = require("mongoose-paginate");
-var schema = mongoose.Schema;
-var staticKey = new schema(
+import mongoosePaginate from "mongoose-paginate";
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate";
+import Mongoose, { Schema, Types } from "mongoose";
+
+var staticKey = new Schema(
   {
     status: {
       type: String,
@@ -24,6 +25,7 @@ var staticKey = new schema(
   }
 );
 
+staticKey.plugin(mongooseAggregatePaginate);
 staticKey.plugin(mongoosePaginate);
-module.exports = mongoose.model("blog", staticKey);
+module.exports = Mongoose.model("blog", staticKey);
 

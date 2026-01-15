@@ -29,12 +29,13 @@ const blogServices = {
       toDate,
       page,
       limit,
+      status
     } = validatedBody;
 
     let query = [
       {
         $match: {
-          status: { $ne: "Delete" },
+          status: { $ne: "DELETE" },
         },
       },
     ];
@@ -48,6 +49,14 @@ const blogServices = {
           ]
         }
       });
+    }
+    if(status){
+      query.push({
+        $match: {
+          
+            status
+        }
+      })
     }
 
     if (fromDate && !toDate) {

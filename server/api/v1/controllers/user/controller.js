@@ -1277,8 +1277,8 @@ export class userController {
 
 
       var result = await createContactUs(validatedBody);
-      await commonFunction.sendMailContactus("support@arbique.com", validatedBody.name, validatedBody.email, validatedBody.message, validatedBody.mobileNumber,)
-      await commonFunction.sendMailContactusUser(validatedBody.email, validatedBody.name, validatedBody.message)
+      // await commonFunction.sendMailContactus("support@arbique.com", validatedBody.name, validatedBody.email, validatedBody.message, validatedBody.mobileNumber,)
+      // await commonFunction.sendMailContactusUser(validatedBody.email, validatedBody.name, validatedBody.message)
       return res.json(new response(result, responseMessage.CONTACT_US));
     } catch (error) {
       return next(error);

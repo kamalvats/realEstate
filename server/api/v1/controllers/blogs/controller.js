@@ -54,7 +54,11 @@ class blogController {
  *         required: true
  *         schema:
  *           type: object
- *           BLOGS:
+ *           required:
+ *             - title
+ *             - description
+ *             - img
+ *           properties:
  *             title:
  *               type: string
  *             description:
@@ -66,6 +70,7 @@ class blogController {
  *       200:
  *         description: Blog created successfully
  */
+
 
   async createBlog(req, res, next) {
     const schema = {
@@ -170,7 +175,7 @@ class blogController {
  *           type: object
  *           required:
  *             - blogId
- *           BLOGS:
+ *           properties:
  *             blogId:
  *               type: string
  *             title:
@@ -184,6 +189,7 @@ class blogController {
  *       200:
  *         description: Blog updated successfully
  */
+
   async updateBlog(req, res, next) {
     const schema = {
       blogId: Joi.string().required(),

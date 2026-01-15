@@ -36,13 +36,10 @@ const transactionServices = {
       toDate,
       page,
       limit,
-      transactionType,
       userId,
       status,
-      notEqual,
-      campaignId,
-      isClaimed,
-      isCompleted
+      projectId,
+      propertyStatus
     } = validatedBody;
     let query = [
       {
@@ -58,35 +55,35 @@ const transactionServices = {
       },
       {
         $lookup: {
-          from: 'campaigns',
-          localField: 'campaignId',
+          from: 'projects',
+          localField: 'projectId',
           foreignField: '_id',
-          as: 'campaignId'
+          as: 'projectId'
         }
       },
       {
-        $unwind: '$campaignId'
+        $unwind: '$projectId'
       },
       {
         $project: {
-          token: 1,
-          transactionType: 1,
           createdAt: 1,
-          hash: 1,
+          orderId: 1,
           amount: 1,
           status: 1,
-          walletAddress: 1,
+          projectId: 1,
           email: '$userdf.email',
           userId: '$userdf._id',
-          walletAddress:`$userdf.walletAddress`,
-          campaignId:1,
-          isClaimed:1,
-          isCompleted:1
+          
          
         }
       }, {
         $sort: { createdAt: -1 }
+      },
+      {
+      $match: {
+        "project.propertyStatus": "ACTIVE" // ✅ only ACTIVE
       }
+    }
     ];
 
 
@@ -97,56 +94,22 @@ const transactionServices = {
         }
       });
     }
-    if(campaignId){
+    if(projectId){
       query.push({
         $match: {
-          "campaignId._id": mongoose.Types.ObjectId(campaignId),
+          "projectId._id": mongoose.Types.ObjectId(projectId),
         }
       });
     }
 
-    if (transactionType) {
-      query.push({
-        $match: {
-          transactionType: transactionType
-        }
-      });
-    }
-    if (notEqual) {
-      query.push({
-        $match: notEqual
-      });
-    }
-    if(isClaimed ==true || isClaimed ==false){
-      query.push({
-        $match: {
-          isClaimed: isClaimed
-        }
-      });
-    }
-    if(isCompleted ==true || isCompleted ==false){
-      query.push({
-        $match: {
-          isCompleted: isCompleted
-        }
-      });
-    }
+   
 
     
     if (search) {
-      let searchQuery = {};
-    
-      try {
-       const objectId = mongoose.Types.ObjectId(search);
-        searchQuery._id = objectId;
-      } catch (error) {
-       searchQuery.walletAddress = { $regex: search, $options: 'i' };
-      }
-    
       query.push({
         $match: {
           $or: [
-            searchQuery
+            { "project.title": { $regex: search, $options: "i" } }
           ]
         }
       });
@@ -156,6 +119,14 @@ const transactionServices = {
       query.push({
         $match: {
           status: status
+        }
+      });
+    }
+
+    if(propertyStatus){
+      query.push({
+        $match: {
+          "projectId.status": propertyStatus
         }
       });
     }

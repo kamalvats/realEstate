@@ -36,7 +36,6 @@ class ExpressServer {
     app.use(express.urlencoded({ extended: true, limit: '1000mb' }))
 
     app.use(morgan('dev'))
-    app.use(cookieParser());
     // Temporary logging for debugging cookies and origins
     app.use((req, res, next) => {
       console.log('Request Origin:', req.headers.origin);
@@ -49,24 +48,26 @@ class ExpressServer {
   "http://192.168.16.163:2070",
   "http://10.190.70.180:2070",
   "http://127.0.0.1:5500",
-  "http://localhost:5500"
+  "http://localhost:5500",
+  "http://192.168.16.185:2070"
 ].filter(Boolean);
 
 const corsOptions = {
-  // origin: function (origin, callback) {
-  //   if (!origin || allowedOrigins.includes(origin)) {
-  //     callback(null, true);
-  //   } else {
-  //     callback(new Error('Not allowed by CORS'));
-  //   }
-  // },
-  credentials: true,
-  origin: '*',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  // origin: '*',
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
   allowedHeaders: ["Content-Type", "Authorization","Accept"],
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
+app.use(cookieParser());
 
 
   }

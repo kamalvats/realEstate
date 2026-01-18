@@ -105,7 +105,7 @@ class leadController {
 
     try {
       const validatedBody = await Joi.validate(req.body, schema);
-      if (validatedBody.type == "info") {
+      if (validatedBody.type == "enquiry") {
         let alreadyPresent = await getLeads({ email: validatedBody.email, type: validatedBody.type })
         if (alreadyPresent) {
           return res.json(

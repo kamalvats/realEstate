@@ -9,6 +9,7 @@ export default Express.Router()
 
     .post("/signup", controller.signup)
     .post('/login', controller.login)
+    .post("/logout", controller.logout)
     .post('/webhook/setu', controller.setuWebhook)
 
     .post('/contact-us', controller.contactUs)

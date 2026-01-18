@@ -203,6 +203,38 @@ export class userController {
     }
   }
 
+  /**
+ * @swagger
+ * /user/logout:
+ *   post:
+ *     tags:
+ *       - USER
+ *     description: Logout user (clear auth cookie)
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Returns logout success message
+ */
+async logout(req, res, next) {
+  try {
+    // ✅ clear cookie (same config as you set in signup)
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,        // must match
+      sameSite: "none",    // must match
+      path: "/",
+    });
+
+    return res.json(
+      new response({}, "Logout successful ✅")
+    );
+  } catch (error) {
+    return next(error);
+  }
+}
+
+
 
   /**
    * @swagger
@@ -1198,12 +1230,12 @@ export class userController {
     const validationSchema = {
       firstName: Joi.string().optional(),
       lastName: Joi.string().optional(),
-      preferredArea: Joi.boolean().optional(),
-      budgetStart: Joi.boolean().optional(),
-      budgetEnd: Joi.boolean().optional(),
-      email: Joi.boolean().optional(),
-      address: Joi.boolean().optional(),
-      profileImage: Joi.boolean().optional(),
+      preferredArea: Joi.string().optional(),
+      budgetStart: Joi.number().optional(),
+      budgetEnd: Joi.number().optional(),
+      email: Joi.string().optional(),
+      address: Joi.string().optional(),
+      profileImage: Joi.string().optional(),
     };
     try {
       if (req.body.email) {

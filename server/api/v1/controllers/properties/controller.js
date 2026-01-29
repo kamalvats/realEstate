@@ -88,10 +88,10 @@ class propertyController {
  *               enum: [ACTIVE, INACTIVE, DELETE]
  *             verified:
  *               type: boolean
- *
  *             faq:
  *               type: array
- *
+ *             towers:
+ *               type: array
  *             city:
  *               type: string
  *             zone:
@@ -307,6 +307,7 @@ class propertyController {
     title: Joi.string().required(),
     description: Joi.string().optional(),
     faq: Joi.array().optional(),
+    towers: Joi.array().optional(),
 
     type: Joi.string()
       .valid(
@@ -624,7 +625,8 @@ class propertyController {
  *               type: boolean
  *             faq:
  *               type: array
- *
+ *             towers:
+ *               type: array
  *             city:
  *               type: string
  *             zone:
@@ -849,7 +851,7 @@ class propertyController {
     title: Joi.string().optional(),
     description: Joi.string().optional(),
     faq: Joi.array().optional(),
-
+    towers: Joi.array().optional(),
     type: Joi.string()
       .valid(
         "flat",

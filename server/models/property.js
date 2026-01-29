@@ -1,6 +1,7 @@
 import mongoosePaginate from "mongoose-paginate";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate";
 import Mongoose, { Schema, Types } from "mongoose";
+import { id } from "ethers/lib/utils";
 
 const PropertySchema = new Schema(
     {
@@ -214,7 +215,19 @@ const PropertySchema = new Schema(
             name:{type:String},
             distance:{type:String}
         }],
-        prime:{type:Boolean,default:false}
+        prime:{type:Boolean,default:false},
+        towers:[{
+            id:String,
+            label:String,
+            floors:[{
+                id:String,
+                label:String,
+                units:[{
+                    unitNo:String,
+                    status:String
+                }]
+            }]
+        }]
 
 
     },

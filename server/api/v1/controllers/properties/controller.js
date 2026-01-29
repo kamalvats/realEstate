@@ -1591,7 +1591,7 @@ class propertyController {
 
   async createPaymentOrder(req, res) {
     try {
-      const { projectId } = req.body;
+      const { projectId ,id} = req.body;
       const userId = req.user._id;
 
       let projectData = await getProjects({
@@ -1618,6 +1618,7 @@ class propertyController {
         transactionType: "TOKEN",
         status: "PENDING",
         orderId: order.id,
+        id : id
       });
 
       return res.status(200).json({
@@ -1651,11 +1652,30 @@ class propertyController {
       if (expectedSignature !== razorpay_signature) {
         return res.status(400).json({ success: false, message: "Invalid signature" });
       }
-
+let trxData =await transactionServices.getTransaction({ orderId: razorpay_order_id });
       await transactionServices.updateTransaction(
-        { hash: razorpay_order_id },
+        { orderId: razorpay_order_id },
         {
           status: "COMPLETED",
+        }
+      );
+      let propertyData = await getProperties({
+        _id: trxData.projectId,
+        propertyStatus: { $ne: "DELETE" },
+      });
+
+      let towers = propertyData.towers;
+      for (let i = 0; i < towers.length; i++) {
+        for (let j = 0; j < towers[i].flats.length; j++) {
+          if (towers[i].flats[j]._id.toString() === trxData.id) {
+            towers[i].flats[j].status = "UNAVAILABLE";
+          }
+        }
+      }
+      await propertiesServices.updateProperties(
+        { _id: propertyData._id },
+        {
+          towers: towers,
         }
       );
 
@@ -1785,8 +1805,8 @@ class propertyController {
       })
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
-      validatedQuery.status = "ACTIVE"
-      const list = await propertiesAggSearch(validatedQuery);
+      // validatedQuery.status = "ACTIVE"
+      const list = await getAllLiked(validatedQuery);
 
       if (!list.docs.length) {
         throw apiError.notFound(responseMessage.DATA_NOT_FOUND);

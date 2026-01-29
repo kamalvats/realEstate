@@ -29,6 +29,9 @@ var transactionModel = new Schema(
     orderId: {
       type: String,
     },
+    id:{
+      type: String,
+    }
   },
   { timestamps: true }
 );

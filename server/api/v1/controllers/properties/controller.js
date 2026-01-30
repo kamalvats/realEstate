@@ -1394,6 +1394,8 @@ class propertyController {
           })
           if (findLike) {
             list.docs[i].liked = true
+          }else{
+            list.docs[i].liked = false
           }
         }
       }

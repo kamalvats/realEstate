@@ -216,18 +216,7 @@ const PropertySchema = new Schema(
             distance:{type:String}
         }],
         prime:{type:Boolean,default:false},
-        towers:[{
-            id:String,
-            label:String,
-            floors:[{
-                id:String,
-                label:String,
-                units:[{
-                    unitNo:String,
-                    status:String
-                }]
-            }]
-        }]
+        towers:[]
 
 
     },

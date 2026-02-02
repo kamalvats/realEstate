@@ -283,9 +283,6 @@ export class transactionController {
         throw apiError.unauthorized(responseMessage.UNAUTHORIZED);
       }
       validatedBody.userId = userResult._id;
-      if (validatedBody.transactionType == "JOINED") {
-        validatedBody.isClaimed= false 
-      }
       let transactionHistory = await transactionPaginateSearch(validatedBody);
       if (transactionHistory.docs.length == 0) {
         throw apiError.notFound(responseMessage.DATA_NOT_FOUND);

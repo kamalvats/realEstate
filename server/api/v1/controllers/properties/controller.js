@@ -1589,12 +1589,12 @@ class propertyController {
   }
 
 
-  async createPaymentOrder(req, res) {
+  async createPaymentOrder(req, res,next) {
     try {
-      const { projectId ,id} = req.body;
-      const userId = req.user._id;
+      const { projectId ,towerId,floorId,unitId,amount,name,mobileNumber,note} = req.body;
+      const userId = req.userId;
 
-      let projectData = await getProjects({
+      let projectData = await getProperties({
         _id: projectId,
         propertyStatus: { $ne: "DELETE" },
       });
@@ -1603,7 +1603,7 @@ class propertyController {
       }
 
       const options = {
-        amount: projectData.tokenAmount * 100,
+        amount: amount * 100,
         currency: "INR",
         receipt: `rcpt_${Date.now()}`,
       };
@@ -1618,79 +1618,125 @@ class propertyController {
         transactionType: "TOKEN",
         status: "PENDING",
         orderId: order.id,
-        id : id
+        towerId,floorId,unitId,name,mobileNumber,note
       });
-
-      return res.status(200).json({
+return res.json(
+        new response({
         success: true,
         order,
-      });
+        amount:projectData.tokenAmount * 100
+      }, responseMessage.DATA_FOUND)
+      );
 
     } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message,
-      });
+     return next(error);
     }
   }
 
   /** ================= VERIFY PAYMENT ================= **/
-  async verifyPayment(req, res) {
-    try {
-      const {
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
-      } = req.body;
+  async verifyPayment(req, res,next) {
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    } = req.body;
 
-      const body = razorpay_order_id + "|" + razorpay_payment_id;
-      const expectedSignature = crypto
-        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-        .update(body)
-        .digest("hex");
+    const userId = req.userId;
 
-      if (expectedSignature !== razorpay_signature) {
-        return res.status(400).json({ success: false, message: "Invalid signature" });
-      }
-let trxData =await transactionServices.getTransaction({ orderId: razorpay_order_id });
-      await transactionServices.updateTransaction(
-        { orderId: razorpay_order_id },
-        {
-          status: "COMPLETED",
-        }
-      );
-      let propertyData = await getProperties({
-        _id: trxData.projectId,
-        propertyStatus: { $ne: "DELETE" },
+    // 1️⃣ Verify Razorpay signature
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", "XpnnQy5EcWIdpC6kRw3vHw8Z")
+      .update(body)
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid signature",
       });
+    }
 
-      let towers = propertyData.towers;
-      for (let i = 0; i < towers.length; i++) {
-        for (let j = 0; j < towers[i].flats.length; j++) {
-          if (towers[i].flats[j]._id.toString() === trxData.id) {
-            towers[i].flats[j].status = "UNAVAILABLE";
+    // 2️⃣ Get transaction
+    const trxData = await transactionServices.getTransaction({
+      orderId: razorpay_order_id,
+    });
+
+    if (!trxData) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+    }
+
+    // 3️⃣ Update transaction status
+    await transactionServices.updateTransaction(
+      { orderId: razorpay_order_id },
+      { status: "COMPLETED" }
+    );
+
+    // trxData should contain:
+    // projectId, towerId, floorId, unitId
+
+    // 4️⃣ Get property
+    const propertyData = await getProperties({
+      _id: trxData.projectId,
+      propertyStatus: { $ne: "DELETE" },
+    });
+
+    if (!propertyData) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found",
+      });
+    }
+
+    // 5️⃣ Update unit inside towers → floors → units
+    let unitFound = false;
+
+    for (const tower of propertyData.towers) {
+      if (tower.towerId !== trxData.towerId) continue;
+
+      for (const floor of tower.floors) {
+        if (floor.floorId !== trxData.floorId) continue;
+
+        for (const unit of floor.units) {
+          if (unit.unitId === trxData.unitId) {
+            unit.status = "BOOKED"; // or "SOLD"
+            unit.soldAt = new Date();
+            unit.reservedUntil = null;
+            unit.holdByUserId = null;
+            unitFound = true;
+            break;
           }
         }
       }
-      await propertiesServices.updateProperties(
-        { _id: propertyData._id },
-        {
-          towers: towers,
-        }
-      );
+    }
 
-      return res.status(200).json({
-        success: true,
-        message: "Payment verified successfully",
-      });
-
-    } catch (error) {
-      return res.status(500).json({
+    if (!unitFound) {
+      return res.status(404).json({
         success: false,
-        message: error.message,
+        message: "Unit not found",
       });
     }
-  }
+
+    // 6️⃣ Save property
+    await propertiesServices.updateProperties(
+      { _id: propertyData._id },
+      { towers: propertyData.towers }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment verified and unit booked successfully",
+    });
+
+  }  catch (error) {
+     return next(error);
+    }
+}
+
 
   /**
    * @swagger

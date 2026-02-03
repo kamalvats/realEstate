@@ -208,7 +208,7 @@ const PropertySchema = new Schema(
 
         /* ================= AVAILABILITY ================= */
         reservedUntil: Date,
-        soldAt: Date,
+        launchDate: Date,
         space:{type:Array,},
         keyHighlight:{type:Array},
         nearByConnectivity:[{

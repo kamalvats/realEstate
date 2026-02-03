@@ -51,18 +51,18 @@ const transactionServices = {
         }
       },
       {
-        $unwind: '$userdf'
+        $unwind: {path: '$userdf', preserveNullAndEmptyArrays: true}
       },
       {
         $lookup: {
-          from: 'projects',
+          from: 'properties',
           localField: 'projectId',
           foreignField: '_id',
           as: 'projectId'
         }
       },
       {
-        $unwind: '$projectId'
+        $unwind: {path: '$projectId', preserveNullAndEmptyArrays: true}
       },
       {
         $project: {
@@ -73,6 +73,12 @@ const transactionServices = {
           projectId: 1,
           email: '$userdf.email',
           userId: '$userdf._id',
+          towerId:1,
+          floorId:1,
+          unitId:1,
+          name:1,
+          mobileNumber:1,
+          note:1
           
          
         }
@@ -81,7 +87,7 @@ const transactionServices = {
       },
       {
       $match: {
-        "project.propertyStatus": "ACTIVE" // ✅ only ACTIVE
+        "projectId.propertyStatus": "ACTIVE" // ✅ only ACTIVE
       }
     }
     ];
@@ -109,7 +115,7 @@ const transactionServices = {
       query.push({
         $match: {
           $or: [
-            { "project.title": { $regex: search, $options: "i" } }
+            { "projectId.title": { $regex: search, $options: "i" } }
           ]
         }
       });

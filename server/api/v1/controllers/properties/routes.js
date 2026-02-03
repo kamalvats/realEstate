@@ -7,10 +7,10 @@ export default Express.Router()
   /* ================= PUBLIC ================= */
   .get("/view", controller.viewProperty)
   .get("/list", controller.listPropertiesLP)
-
+  
   /* ================= ADMIN ================= */
   .use(auth.verifyToken)
-
+  
   .post("/admin/create", controller.createProperty)
   .get("/token/list", controller.listProperties)
   .put("/admin/update", controller.updateProperty)
@@ -18,6 +18,7 @@ export default Express.Router()
   .delete("/admin/delete", controller.deleteProperty)
   .put("/likeUnlike", controller.likeUnlike)
   .post("/book",controller.createPaymentOrder)
+  .post("/verifyBooking",controller.verifyPayment)
   .get("/listLiked", controller.listPropertiesLiked)
 
 

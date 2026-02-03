@@ -29,9 +29,24 @@ var transactionModel = new Schema(
     orderId: {
       type: String,
     },
-    id:{
+    towerId:{
       type: String,
-    }
+    },
+    floorId:{
+      type: String,
+    },
+    unitId:{
+      type: String,
+    },
+    name:{
+      type: String,
+    },
+    mobileNumber:{
+      type: String,
+    },
+    note:{
+      type: String,
+    },
   },
   { timestamps: true }
 );

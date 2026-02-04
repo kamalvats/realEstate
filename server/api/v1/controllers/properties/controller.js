@@ -275,7 +275,7 @@ class propertyController {
  *             reservedUntil:
  *               type: string
  *               format: date-time
- *             soldAt:
+ *             launchDate:
  *               type: string
  *               format: date-time
  *
@@ -479,7 +479,7 @@ class propertyController {
 
     /* ================= AVAILABILITY ================= */
     reservedUntil: Joi.date().optional(),
-    soldAt: Joi.date().optional(),
+    launchDate: Joi.date().optional(),
 
     space: Joi.array()
       .items(
@@ -808,7 +808,7 @@ class propertyController {
  *             reservedUntil:
  *               type: string
  *               format: date
- *             soldAt:
+ *             launchDate:
  *               type: string
  *               format: date
  *
@@ -1015,7 +1015,7 @@ class propertyController {
 
     /* ================= AVAILABILITY ================= */
     reservedUntil: Joi.date().optional(),
-    soldAt: Joi.date().optional(),
+    launchDate: Joi.date().optional(),
 
     space: Joi.array()
       .items(
@@ -1706,7 +1706,7 @@ return res.json(
         for (const unit of floor.units) {
           if (unit.unitId === trxData.unitId) {
             unit.status = "BOOKED"; // or "SOLD"
-            unit.soldAt = new Date();
+            unit.launchDate = new Date();
             unit.reservedUntil = null;
             unit.holdByUserId = null;
             unitFound = true;
@@ -1728,12 +1728,12 @@ return res.json(
       { _id: propertyData._id },
       { towers: propertyData.towers }
     );
-
-    return res.status(200).json({
-      success: true,
-      message: "Payment verified and unit booked successfully",
-    });
-
+return res.json(
+        new response({
+        success: true,
+      }, "Payment verified and unit booked successfully")
+      );
+  
   }  catch (error) {
      return next(error);
     }
@@ -1854,6 +1854,7 @@ return res.json(
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
       // validatedQuery.status = "ACTIVE"
+      validatedQuery.userId = req.userId
       const list = await getAllLiked(validatedQuery);
 
       if (!list.docs.length) {

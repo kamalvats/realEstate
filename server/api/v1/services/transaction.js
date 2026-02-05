@@ -43,6 +43,9 @@ const transactionServices = {
     } = validatedBody;
     let query = [
       {
+        $match:{status:{$ne:"PENDING"}}
+      },
+      {
         $lookup: {
           from: 'users',
           localField: 'userId',

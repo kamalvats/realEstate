@@ -222,7 +222,7 @@ class leadController {
     const schema = {
       leadId: Joi.string().required(),
 
-      status: Joi.string().valid("new", "contacted", "closed").required(),
+      status: Joi.string().valid("new", "contacted", "closed","cancel").required(),
 
       notes: Joi.string().optional(),
       preferredDate: Joi.date().optional(),
@@ -237,17 +237,20 @@ class leadController {
       );
       let admin = await findUser({
         _id: req.userId,
-        userType: {
-          $ne: "USER"
-        },
+        // userType: {
+        //   $ne: "USER"
+        // },
         status: status.ACTIVE
       })
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
-
-      const lead = await getLeads({
+let query={
         _id: validatedBody.leadId,
         status: { $ne: DELETE },
-      });
+      }
+      if(admin.userType=="USER"){
+        query.userId = admin._id
+      }
+      const lead = await getLeads(query);
 
       if (!lead) {
         throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
@@ -292,6 +295,18 @@ class leadController {
    *         description: preferredSlot
    *         in: formData
    *         required: false
+   *       - name: propertyId
+   *         description: propertyId
+   *         in: formData
+   *         required: false
+   *       - name: message
+   *         description: message
+   *         in: formData
+   *         required: false
+   *       - name: timePreference
+   *         description: timePreference
+   *         in: formData
+   *         required: false
    *     responses:
    *       200:
    *         description: Lead created successfully
@@ -300,7 +315,10 @@ class leadController {
     const schema = {
       leadId: Joi.string().required(),
       preferredDate: Joi.date().optional(),
-      preferredSlot: Joi.string().optional()
+      preferredSlot: Joi.string().optional(),
+      propertyId: Joi.string().optional(),
+      message: Joi.string().optional(),
+      timePreference: Joi.string().optional(),
     };
 
     try {
@@ -310,17 +328,21 @@ class leadController {
       );
       let admin = await findUser({
         _id: req.userId,
-        userType: {
-          $ne: "USER"
-        },
+        // userType: {
+        //   $ne: "USER"
+        // },
         status: status.ACTIVE
       })
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
-      const lead = await getLeads({
+      let query={
         _id: validatedBody.leadId,
         status: { $ne: DELETE },
-      });
+      }
+      if(admin.userType=="USER"){
+        query.userId = admin._id
+      }
+      const lead = await getLeads(query);
 
       if (!lead) {
         throw apiError.notFound(responseMessage.DATA_NOT_FOUND);

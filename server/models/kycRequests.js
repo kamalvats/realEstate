@@ -10,7 +10,7 @@ const kycSchema = new Schema(
       ref: "User",
       index: true,
     },
-    referenceId:{type:String,unique:true},
+    referenceId:{type:String},
     pan:{type:String},
     name:{type:String},
     status:{type:String,enum:["PENDING","APPROVED","REJECTED"],default:"PENDING"},

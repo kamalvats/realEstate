@@ -51,7 +51,7 @@ const leadsServices = {
             },
             {
                 $lookup: {
-                    from: "property",
+                    from: "properties",
                     localField: "propertyId",
                     foreignField: "_id",
                     as: "propertyData",

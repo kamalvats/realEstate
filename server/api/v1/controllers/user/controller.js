@@ -101,6 +101,7 @@ export class userController {
       lastName: Joi.string().optional(),
       userName: Joi.string().optional(),
       password: Joi.string().allow("").optional(),
+      type: Joi.string().required(),
     };
 
     try {
@@ -109,6 +110,7 @@ export class userController {
         email,
         mobileNumber,
         password,
+        type
       } = validatedBody;
 
       /** ================= AT LEAST ONE REQUIRED ================= */
@@ -119,10 +121,30 @@ export class userController {
       if (email) {
         validatedBody.email = email.toLowerCase();
       }
+      let typeEnum =["signup","login"]
 
+      if(typeEnum.includes(validatedBody.type.toLowerCase())===false){
+        throw apiError.badRequest("Invalid type value");
+      }
 
-      /** ================= USER EXISTS CHECK ================= */
-      let userInfo = await checkUserExists(email, mobileNumber);
+let orConditions = [];
+
+if (email) {
+  orConditions.push({ email });
+}
+
+if (mobileNumber) {
+  orConditions.push({ mobileNumber });
+}
+
+let qry={
+  status: { $ne: status.DELETE },
+  ...(orConditions.length > 0 && { $or: orConditions })
+}
+
+/** ================= USER EXISTS CHECK ================= */
+let userInfo = await findUser(qry);
+
 
       if (userInfo) {
         if (userInfo.otpVerified === true) {
@@ -131,6 +153,12 @@ export class userController {
           }
 
         }
+      }
+
+      if(type === "signup" && userInfo){
+        throw apiError.conflict("User already exists");
+      }else if(type === "login" && !userInfo){
+        throw apiError.badRequest("User does not exist");
       }
 
 
@@ -949,11 +977,11 @@ async logout(req, res, next) {
 
   /**
    * @swagger
-   * /user/createPanKyc:
-   *   get:
+   * /user/pan/create:
+   *   post:
    *     tags:
    *       - USER
-   *     description:createPanKyc
+   *     description: createPanKyc
    *     produces:
    *       - application/json
    *     parameters:
@@ -991,9 +1019,9 @@ async logout(req, res, next) {
       //   callback_url: "https://your-backend.com/api/v1/user/webhook/setu",
       // });
 
-      await createKyc({ referenceId, pan: req.query.pan, name: req.query.name });
+      await createKyc({  pan: req.query.pan, name: req.query.name });
       return res.json(
-        new response({ referenceId, redirectUrl: response.data.redirect_url, }, "success")
+        new response({  }, "success")
       );
     } catch (error) {
       return next(error);

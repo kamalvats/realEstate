@@ -49,8 +49,9 @@ class ExpressServer {
   "http://10.190.70.180:2070",
   "http://127.0.0.1:5500",
   "http://localhost:5500",
-  "http://192.168.16.185:2070",
-  "https://dui-premium-singer-cooking.trycloudflare.com"
+  "http://192.168.1.36:2070",
+  "http://192.168.1.36:2072",
+  "https://mass-varies-retrieval-injection.trycloudflare.com"
 ].filter(Boolean);
 
 const corsOptions = {

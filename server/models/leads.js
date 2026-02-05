@@ -14,7 +14,7 @@ const LeadSchema = new Schema(
 
     status: {
       type: String,
-      enum: ["new", "contacted", "closed"],
+      enum: ["new", "contacted", "closed","cancel"],
       default: "new",
       index: true,
     },

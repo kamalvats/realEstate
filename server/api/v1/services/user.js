@@ -13,11 +13,11 @@ const userServices = {
     return await userModel.findOne(query);
   },
 
-  checkUserExists: async ( email) => {
+  checkUserExists: async ( email,mobileNumber) => {
     let query = {
       $and: [
-        { status: { $ne: status.DELETE } },
-        { $or: [{ email: email }] },
+        { status: { $ne: status.DELETE },email:{$ne:null},mobileNumber:{$ne:null}} ,
+        { $or: [{ email: email }, { mobileNumber: mobileNumber }] },
       ],
     };
     return await userModel.findOne(query);
@@ -47,10 +47,7 @@ const userServices = {
   },
 
   findUser: async (query) => {
-    return await userModel.findOne(query).populate([
-      { path: 'referrerId' },
-      { path: 'referredPeople' }
-    ]);
+    return await userModel.findOne(query)
   },
 
   userCount: async () => {

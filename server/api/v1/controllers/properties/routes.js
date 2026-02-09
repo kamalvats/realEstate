@@ -20,5 +20,7 @@ export default Express.Router()
   .post("/book",controller.createPaymentOrder)
   .post("/verifyBooking",controller.verifyPayment)
   .get("/listLiked", controller.listPropertiesLiked)
+  .get("/dashboard", controller.dashboard)
+  .get("/visitTrend", controller.visitTrend)
 
 

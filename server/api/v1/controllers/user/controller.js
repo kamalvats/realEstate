@@ -139,6 +139,7 @@ if (mobileNumber) {
 
 let qry={
   status: { $ne: status.DELETE },
+  userType: userType.USER,
   ...(orConditions.length > 0 && { $or: orConditions })
 }
 

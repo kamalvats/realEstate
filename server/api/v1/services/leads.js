@@ -70,7 +70,7 @@ const leadsServices = {
                     foreignField: "_id",
                     as: "userData",
                 },
-            },{
+            }, {
                 $unwind: {
                     path: "$userData",
                     preserveNullAndEmptyArrays: true,
@@ -87,7 +87,7 @@ const leadsServices = {
             query.push({ $match: { source } });
         }
 
-        if(userId){
+        if (userId) {
             query.push({
                 $match: {
                     userId: userId
@@ -222,6 +222,86 @@ const leadsServices = {
 
         return await leadsModel.aggregatePaginate(agg, options);
     },
+    leadsAggCount: async (validatedBody) => {
+
+  const pipeline = [
+
+    /* ================= FILTER ================= */
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(validatedBody.userId),
+        type: "info",
+        status: { $ne: "cancel" }
+      }
+    },
+
+    /* ================= POPULATE PROPERTY ================= */
+    {
+      $lookup: {
+        from: "properties",
+        localField: "propertyId",
+        foreignField: "_id",
+        as: "property"
+      }
+    },
+    { $unwind: "$property" },
+
+    /* ================= GROUP BY ZONE ================= */
+    {
+      $group: {
+        _id: "$property.zone",
+        totalCount: { $sum: 1 }
+      }
+    },
+
+    /* ================= SORT ================= */
+    { $sort: { totalCount: -1 } },
+
+    /* ================= TOP 2 + OTHERS ================= */
+    {
+      $facet: {
+        topZones: [{ $limit: 2 }],
+        others: [
+          { $skip: 2 },
+          {
+            $group: {
+              _id: "others",
+              totalCount: { $sum: "$totalCount" }
+            }
+          }
+        ]
+      }
+    },
+
+    /* ================= FORMAT OUTPUT ================= */
+    {
+      $project: {
+        result: {
+          $concatArrays: [
+            [
+              {
+                label: "1st",
+                zone: { $arrayElemAt: ["$topZones._id", 0] },
+                totalCount: { $arrayElemAt: ["$topZones.totalCount", 0] }
+              },
+              {
+                label: "2nd",
+                zone: { $arrayElemAt: ["$topZones._id", 1] },
+                totalCount: { $arrayElemAt: ["$topZones.totalCount", 1] }
+              }
+            ],
+            "$others"
+          ]
+        }
+      }
+    },
+    { $unwind: "$result" },
+    { $replaceRoot: { newRoot: "$result" } }
+  ];
+
+  return await leadsModel.aggregate(pipeline);
+}
+
 };
 
 module.exports = {

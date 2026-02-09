@@ -216,7 +216,8 @@ const PropertySchema = new Schema(
             distance:{type:String}
         }],
         prime:{type:Boolean,default:false},
-        towers:[]
+        towers:[],
+        compounds:[],
 
 
     },

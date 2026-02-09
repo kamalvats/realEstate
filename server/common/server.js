@@ -51,7 +51,7 @@ class ExpressServer {
   "http://localhost:5500",
   "http://192.168.1.36:2070",
   "http://192.168.1.36:2072",
-  "https://mass-varies-retrieval-injection.trycloudflare.com"
+  "https://interventions-reader-cats-essentials.trycloudflare.com"
 ].filter(Boolean);
 
 const corsOptions = {

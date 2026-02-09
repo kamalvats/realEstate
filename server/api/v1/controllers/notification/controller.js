@@ -97,7 +97,7 @@ export class notificationController {
    */
   async deleteNotification(req, res, next) {
     const validationSchema = {
-      _id: Joi.string().required(),
+      _id: Joi.array().required(),
     };
     try {
       const { _id } = await Joi.validate(req.query, validationSchema);
@@ -106,7 +106,7 @@ export class notificationController {
         throw apiError.notFound(responseMessage.USER_NOT_FOUND);
       }
       var notificationResult = await findNotification({
-        _id: _id,
+        _id: { $in: _id },
         $or: [
           { userId: userResult._id },
           // { userId: { $exists: false } },
@@ -117,7 +117,7 @@ export class notificationController {
       if (!notificationResult) {
         throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
       }
-      var result = await updateNotification(
+      var result = await multiUpdateNotification(
         { _id: notificationResult._id },
         {
           $set:{status:"DELETE"},
@@ -208,14 +208,14 @@ export class notificationController {
       }
       let dataResults = await paginateNotification(obj);
 
-      let status = dataResults.docs.length > 0;
+      let status = dataResults.docs.length ;
 
 
 
       if (status) {
         return res.json(new response(status, responseMessage.DATA_FOUND));
       } else {
-        return res.status(200).json({ status: false, message: responseMessage.DATA_NOT_FOUND });
+        return res.status(200).json({ status: 0,message: responseMessage.DATA_NOT_FOUND });
       }
     } catch (error) {
       return next(error);
@@ -238,18 +238,28 @@ export class notificationController {
    *         description: token
    *         in: header
    *         required: true
+   *       - name: _id
+   *         description: _id
+   *         in: query
+   *         required: true
    *     responses:
    *       200:
    *         description: Returns success message
    */
   async readNotification(req, res, next) {
+     const validationSchema = {
+      _id: Joi.array().required(),
+    };
     try {
+      const { _id } = await Joi.validate(req.query, validationSchema);
+      
       let userResult = await findUser({ _id: req.userId });
       if (!userResult) {
         throw apiError.notFound(responseMessage.USER_NOT_FOUND);
       }
       var result = await multiUpdateNotification(
         {
+          _id: { $in: _id },
           $or: [
             { userId: userResult._id },
             // { userId: { $exists: false } }

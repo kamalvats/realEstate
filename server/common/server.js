@@ -42,7 +42,7 @@ class ExpressServer {
       console.log('Cookies received:', req.cookies);
       next();
     });
-    const allowedOrigins = [
+const allowedOrigins = [
   "http://localhost:2070",
   "http://127.0.0.1:2070",
   "http://192.168.16.163:2070",
@@ -51,24 +51,46 @@ class ExpressServer {
   "http://localhost:5500",
   "http://192.168.1.36:2070",
   "http://192.168.1.36:2072",
-  "https://interventions-reader-cats-essentials.trycloudflare.com"
-].filter(Boolean);
+  "https://interventions-reader-cats-essentials.trycloudflare.com",
+  "https://cape-limit-script-eco.trycloudflare.com",
+  "http://localhost:2072"
+];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+app.use(
+  cors((req, callback) => {
+    const origin = req.header("Origin");
+
+    let corsOptions = {
+      origin: false,
+      credentials: false,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    };
+
+    if (!origin) {
+      corsOptions.origin = true;
+      return callback(null, corsOptions);
     }
-  },
-  // origin: '*',
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization","Accept"],
-  credentials: true,
-};
 
-app.use(cors(corsOptions));
+    if (!allowedOrigins.includes(origin)) {
+      return callback(new Error("Not allowed by CORS"));
+    }
+
+    corsOptions.origin = origin;
+
+    // 🔥 dynamically allow requested headers
+    corsOptions.allowedHeaders =
+      req.headers["access-control-request-headers"];
+
+    // credentials only for non-2072
+    if (origin !== "http://localhost:2072") {
+      corsOptions.credentials = true;
+    }
+
+    return callback(null, corsOptions);
+  })
+);
+
+
 app.use(cookieParser());
 
 

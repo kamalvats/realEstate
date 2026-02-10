@@ -113,26 +113,39 @@ export class adminController {
       if (!bcrypt.compareSync(password, userResult.password)) {
         throw apiError.conflict(responseMessage.INCORRECT_LOGIN);
       } else {
-        var token = await commonFunction.getToken({
+
+        var obj = {}
+        //  obj.otp = await commonFunction.getOTP(),
+         obj.otp = "123456",
+          obj.otpExpireTime = new Date().getTime() + 300000
+        var result = await updateUser({
           _id: userResult._id,
-          email: userResult.email,
-          mobileNumber: userResult.mobileNumber,
-          userType: userResult.userType,
-        });
+        },
+          obj
+        )
+
+        // await commonFunction.sendEmailOtp(result.email, obj.otp, result.firstName);
+        
+        // var token = await commonFunction.getToken({
+        //   _id: userResult._id,
+        //   email: userResult.email,
+        //   mobileNumber: userResult.mobileNumber,
+        //   userType: userResult.userType,
+        // });
         results = {
           _id: userResult._id,
           email: email,
           userType: userResult.userType,
-          token: token,
+          // token: token,
         };
       }
-       res.cookie("token", token, {
-        httpOnly: true,
-        secure: true,        // 🔥 required
-        sameSite: "none",    // 🔥 required
-        path: "/",
-        maxAge: 24 * 60 * 60 * 1000
-      });
+      //  res.cookie("token", token, {
+      //   httpOnly: true,
+      //   secure: true,        // 🔥 required
+      //   sameSite: "none",    // 🔥 required
+      //   path: "/",
+      //   maxAge: 24 * 60 * 60 * 1000
+      // });
       return res.json(new response(results, "Otp send to your email. Please verify and login."));
     } catch (error) {
       console.log(error);
@@ -423,6 +436,13 @@ export class adminController {
         otpVerified: true,
         token: token,
       };
+       res.cookie("token", token, {
+        httpOnly: true,
+        secure: true,        // 🔥 required
+        sameSite: "none",    // 🔥 required
+        path: "/",
+        maxAge: 24 * 60 * 60 * 1000
+      });
       return res.json(new response(obj, responseMessage.OTP_VERIFY));
     } catch (error) {
       console.log(error);

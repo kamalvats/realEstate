@@ -40,7 +40,7 @@ const likedServices = {
   },
   getAllLiked: async (insertObj) => {
     let query = { status: { $ne: statuss.DELETE } };
-    const { search, fromDate, toDate, page, limit, status, reply } = insertObj;
+    const { search, fromDate, toDate, page, limit, status, reply,userId } = insertObj;
 
     if (search) {
       query.$or = [
@@ -48,6 +48,9 @@ const likedServices = {
         { name: { $regex: search, $options: 'i' } },
         { mobileNumber: { $regex: search, $options: 'i' } }
       ];
+    }
+    if (userId) {
+      query.userId = userId
     }
     if (status) {
       query.status = status

@@ -172,14 +172,14 @@ const PropertySchema = new Schema(
 
         /* ================= MEDIA ================= */
         media: [
-            {
-                type: {
-                    type: String,
-                    enum: ["image", "video", "virtual_tour", "brochure"],
-                },
-                url: String,
-                isPrimary: Boolean,
-            },
+            // {
+            //     type: {
+            //         type: String,
+            //         enum: ["image", "video", "virtual_tour", "brochure"],
+            //     },
+            //     url: String,
+            //     isPrimary: Boolean,
+            // },
         ],
 
         videoAvailable: Boolean,

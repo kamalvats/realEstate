@@ -458,15 +458,6 @@ class propertyController {
 
       /* ================= MEDIA ================= */
       media: Joi.array()
-        .items(
-          Joi.object({
-            type: Joi.string()
-              .valid("image", "video", "virtual_tour", "brochure")
-              .required(),
-            url: Joi.string().required(),
-            isPrimary: Joi.boolean().optional(),
-          })
-        )
         .optional(),
 
       videoAvailable: Joi.boolean().optional(),
@@ -997,15 +988,6 @@ class propertyController {
 
       /* ================= MEDIA ================= */
       media: Joi.array()
-        .items(
-          Joi.object({
-            type: Joi.string()
-              .valid("image", "video", "virtual_tour", "brochure")
-              .required(),
-            url: Joi.string().required(),
-            isPrimary: Joi.boolean().optional(),
-          })
-        )
         .optional(),
 
       videoAvailable: Joi.boolean().optional(),

@@ -221,7 +221,11 @@ let userInfo = await findUser(qry);
         userType: result.userType,
         token : token
       };
-
+await createNotification({
+        userId: result._id,
+        title: type === "signup" ? "Welcome to our platform!" : "Welcome back!",
+        message: `You have successfully ${type === "signup" ? "signed up" : "logged in"}.`, 
+})
       return res.json(
         new response(results, "OTP sent successfully. Please verify first.")
       );

@@ -19,7 +19,7 @@ var transactionModel = new Schema(
     },
     status: {
       type: String,
-      enum :["PENDING","REJECT","APPROVE","COMPLETED"],
+      enum :["PENDING","REJECT","APPROVE","COMPLETED","REFUNDED"],
       default: "COMPLETED",
     },
     transactionType: {
@@ -47,6 +47,19 @@ var transactionModel = new Schema(
     note:{
       type: String,
     },
+    isRefundRequested:{
+      type: Boolean,
+      default: false,
+    },
+    isRejectedByAdmin:{
+      type: Boolean,
+      default: false,
+    },
+    reason:{
+type: String,
+    },
+    userReason:{type: String, },
+    refundAmount:{type: Number, default: 0}
   },
   { timestamps: true }
 );

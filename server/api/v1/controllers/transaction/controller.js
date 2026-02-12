@@ -122,6 +122,8 @@ export class transactionController {
       campaignId: Joi.string().optional(),
       isCompleted: Joi.boolean().optional(),
       isClaimed: Joi.boolean().optional(),
+      isRefundRequested: Joi.boolean().optional(),
+      isRejectedByAdmin: Joi.boolean().optional()
     };
     try {
       let validatedBody = await Joi.validate(req.query, validationSchema);
@@ -267,6 +269,8 @@ export class transactionController {
       status: Joi.string().optional(),
       search: Joi.string().optional(),
       campaignId: Joi.string().optional(),
+      isRefundRequested: Joi.string().optional(),
+      isRejectedByAdmin: Joi.string().optional(),
     };
     try {
       let validatedBody = await Joi.validate(req.query, validationSchema);

@@ -33,6 +33,18 @@ const {
   multiUpdateLockedBal
 } = userServices;
 
+import {
+  notificationServices
+} from "../../services/notification";
+const {
+  createNotification,
+  findNotification,
+  updateNotification,
+  multiUpdateNotification,
+  notificationList,
+  paginateNotification
+} = notificationServices;
+
 class leadController {
 
   /* ================= CREATE LEAD ================= */
@@ -117,7 +129,13 @@ class leadController {
         validatedBody.userId = req.userId
       }
       const lead = await createLeads(validatedBody);
-
+if(validatedBody.type !="enquiry"){
+      await createNotification({
+        userId: req.userId,
+        title: "Visit Scheduled",
+        message: "Your visit has been scheduled",
+      })
+}
       return res.json(
         new response(lead, responseMessage.LEAD_CREATED || "Lead created successfully")
       );

@@ -22,5 +22,7 @@ export default Express.Router()
   .get("/listLiked", controller.listPropertiesLiked)
   .get("/dashboard", controller.dashboard)
   .get("/visitTrend", controller.visitTrend)
+  .post("/refundRequest",controller.refundRequest)
+  .post("/refundRequestApproval",controller.refundRequestApproval)
 
 

@@ -39,7 +39,9 @@ const transactionServices = {
       userId,
       status,
       projectId,
-      propertyStatus
+      propertyStatus,
+      isRefundRequested,
+      isRejectedByAdmin
     } = validatedBody;
     let query = [
       {
@@ -81,7 +83,9 @@ const transactionServices = {
           unitId:1,
           name:1,
           mobileNumber:1,
-          note:1
+          note:1,
+          isRefundRequested:1,
+          isRejectedByAdmin:1
           
          
         }
@@ -136,6 +140,22 @@ const transactionServices = {
       query.push({
         $match: {
           "projectId.status": propertyStatus
+        }
+      });
+    }
+
+    if(isRefundRequested){
+      query.push({
+        $match: {
+          isRefundRequested: isRefundRequested == 'true' ? true : false
+        }
+      });
+    }
+
+    if(isRejectedByAdmin){
+      query.push({
+        $match: {
+          isRejectedByAdmin: isRejectedByAdmin == 'true' ? true : false
         }
       });
     }

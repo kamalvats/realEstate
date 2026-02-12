@@ -62,6 +62,18 @@ const {
   leadsCount,
   leadsAggCount
 } = leadsServices;
+
+import {
+  notificationServices
+} from "../../services/notification";
+const {
+  createNotification,
+  findNotification,
+  updateNotification,
+  multiUpdateNotification,
+  notificationList,
+  paginateNotification
+} = notificationServices;
 class propertyController {
 
   /* ================= CREATE PROPERTY ================= */
@@ -1728,6 +1740,12 @@ class propertyController {
         { _id: propertyData._id },
         { towers: propertyData.towers }
       );
+
+      await createNotification({
+        userId: trxData.userId,
+        title: "Payment Successful",
+        message: "Payment verified and unit booked successfully",
+      });
       return res.json(
         new response({
           success: true,
@@ -2000,6 +2018,153 @@ class propertyController {
         return next(error);
       }
     }
+
+    /**
+   * @swagger
+   * /property/refundRequest:
+   *   post:
+   *     tags:
+   *     description: get his own profile details with getProfile API
+   *     produces:
+   *       - application/json
+   *     parameters:
+   *       - name: token
+   *         description: token
+   *         in: header
+   *         required: true
+   *       - name: trxId
+   *         description: trxId
+   *         in: query
+   *         required: true
+   *       - name: userReason
+   *         description: userReason
+   *         in: query
+   *         required: true
+   *     responses:
+   *       200:
+   *         description: Returns success message
+   */
+  async refundRequest(req, res, next) {
+    try {
+      const { trxId ,userReason} = await Joi.validate(req.query, {
+        trxId: Joi.string().required(),
+        userReason: Joi.string().required(),
+      });
+      let admin = await findUser({
+        _id: req.userId,
+        status: status.ACTIVE
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
+
+     let trxData = await transactionServices.getTransaction({
+        _id: trxId,
+        userId: req.userId,
+        status: "COMPLETED",
+      })
+
+      if(!trxData) throw apiError.notFound("Transaction not found");
+       await transactionServices.updateTransaction({
+         _id: trxId,
+       },{isRefundRequested: true,userReason:userReason})
+
+       await createNotification({
+        userId: req.userId,
+        title: "Refund Requested",
+        message: "Your refund request has been sent successfully",
+      });
+      return res.json(
+        new response({},"Refund Request Sent Successfully")
+      );
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  
+    /**
+   * @swagger
+   * /property/refundRequestApproval:
+   *   post:
+   *     tags:
+   *     description: get his own profile details with getProfile API
+   *     produces:
+   *       - application/json
+   *     parameters:
+   *       - name: token
+   *         description: token
+   *         in: header
+   *         required: true
+   *       - name: trxId
+   *         description: trxId
+   *         in: query
+   *         required: true
+   *       - name: status
+   *         description: status
+   *         in: query
+   *         required: true
+   *       - name: reason
+   *         description: reason
+   *         in: query
+   *         required: false
+   *     responses:
+   *       200:
+   *         description: Returns success message
+   */
+  async refundRequestApproval(req, res, next) {
+    try {
+      const { trxId,status,reason ,refundAmount} = await Joi.validate(req.query, {
+        trxId: Joi.string().required(),
+        status: Joi.string().required(),
+        reason: Joi.string().optional(),
+        refundAmount: Joi.number().optional(),
+      });
+      console.log(req.userId)
+      let admin = await findUser({
+        _id: req.userId,
+        userType: {
+          $ne: "USER"
+        },
+        status: "ACTIVE"
+      })
+      if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
+
+     let trxData = await transactionServices.getTransaction({
+        _id: trxId,
+        status: "COMPLETED",
+        isRejectedByAdmin:false,
+        isRefundRequested:true
+      })
+
+      if(!trxData) throw apiError.notFound("Transaction not found");
+
+      if(status === "APPROVED") {
+        await transactionServices.updateTransaction({
+          _id: trxId,
+        },{status: "REFUNDED",refundAmount:refundAmount})
+
+        await createNotification({
+          userId: trxData.userId,
+          title: "Refund Approved",
+          message: "Your refund request has been approved and amount will be refunded to your account within 5-7 business days",
+        });
+      } else {
+        await transactionServices.updateTransaction({
+          _id: trxId,
+        },{isRejectedByAdmin: true,reason:reason})
+
+        await createNotification({
+          userId: trxData.userId,
+          title: "Refund Rejected",
+          message: "Your refund request has been rejected",
+        });
+      }
+      return res.json(
+        new response({},`Refund Request ${status === "APPROVED" ? "Approved" : "Rejected"} Successfully`)
+      );
+    } catch (error) {
+      return next(error);
+    }
+  }
 }
 
 export default new propertyController();

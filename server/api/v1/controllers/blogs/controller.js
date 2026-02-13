@@ -65,6 +65,8 @@ class blogController {
  *               type: string
  *             img:
  *               type: string
+ *             url:
+ *               type: string
  *
  *     responses:
  *       200:
@@ -78,6 +80,7 @@ class blogController {
       title: Joi.string().required(),
       description: Joi.string().optional(),
       img: Joi.string().optional(),
+      url: Joi.string().optional(),
      
     }
 
@@ -183,6 +186,8 @@ class blogController {
  *               type: string
  *             img:
  *               type: string
+ *             url:
+ *               type: string
  *
  *     responses:
  *       200:
@@ -196,6 +201,7 @@ class blogController {
       title: Joi.string().optional(),
       description: Joi.string().optional(),
       img: Joi.string().optional(),
+      url: Joi.string().optional(),
     }
 
     try {
@@ -230,10 +236,7 @@ class blogController {
         }
       }
 
-      const updated = await updateBlog(
-        validatedBody.blogId,
-        validatedBody,
-        { new: true }
+      const updated = await updateBlog({_id: validatedBody.blogId}, validatedBody
       );
 
       return res.json(

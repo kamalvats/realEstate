@@ -599,6 +599,7 @@ class propertyController {
   }
 
   /* ================= UPDATE PROPERTY ================= */
+
   /**
  * @swagger
  * /property/admin/update:
@@ -810,7 +811,6 @@ class propertyController {
  *             virtualTourAvailable:
  *               type: boolean
  *
- *               type: string
  *             registryStatus:
  *               type: string
  *               enum: [freehold, leasehold, registry_available, registry_pending]

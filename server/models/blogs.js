@@ -12,6 +12,9 @@ var staticKey = new Schema(
     img: {
       type: String,
     },
+    url: {
+      type: String,
+    },
     title: {
       type: String,
     },

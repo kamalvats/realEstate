@@ -85,7 +85,8 @@ const transactionServices = {
           mobileNumber:1,
           note:1,
           isRefundRequested:1,
-          isRejectedByAdmin:1
+          isRejectedByAdmin:1,
+          reason:1,userReason:1, refundAmount:1
           
          
         }

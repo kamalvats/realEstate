@@ -107,18 +107,18 @@ export class notificationController {
       }
       var notificationResult = await findNotification({
         _id: { $in: _id },
-        $or: [
+        $and: [
           { userId: userResult._id },
           // { userId: { $exists: false } },
 
         ],
         status: status.ACTIVE
       });
-      if (!notificationResult) {
+      if (!notificationResult || notificationResult.length == 0) {
         throw apiError.notFound(responseMessage.DATA_NOT_FOUND);
       }
       var result = await multiUpdateNotification(
-        { _id: notificationResult._id },
+        { _id: { $in: notificationResult.map(n => n._id) } },
         {
           $set:{status:"DELETE"},
         },

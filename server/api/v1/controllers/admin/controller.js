@@ -51,6 +51,8 @@ import _ from "lodash";
 import { activityServices } from "../../services/activity";
 const { createActivity } = activityServices;
 import { createTransport } from "nodemailer";
+import { contactUsServices } from "../../services/contactUs";
+const { createContactUs, getAllContactUs, viewContactUs,findContactUs,updateContactUs } = contactUsServices;
 export class adminController {
   /**
    * @swagger
@@ -2016,7 +2018,7 @@ export class adminController {
     async replyContactUs(req, res, next) {
         const validationSchema = {
             id: Joi.string().required(),
-            message: Joi.string().optional(),
+            message: Joi.string().required(),
         };
         try {
             let { id } = req.params

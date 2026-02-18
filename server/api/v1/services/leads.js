@@ -29,7 +29,7 @@ const leadsServices = {
             toDate,
             page,
             limit,
-            leadsType,
+            type,
             status,
             startDate,
             endDate,
@@ -38,7 +38,8 @@ const leadsServices = {
             assignedTo,
             source,
             propertyId,
-            userId
+            userId,
+            leadsType
 
         } = validatedBody;
 
@@ -80,8 +81,8 @@ const leadsServices = {
         if (selfQuery) {
             query.push(selfQuery)
         }
-        if (leadsType) {
-            query.push({ $match: { type: leadsType } });
+        if (type) {
+            query.push({ $match: { type: type } });
         }
         if (source) {
             query.push({ $match: { source } });
@@ -90,7 +91,7 @@ const leadsServices = {
         if (userId) {
             query.push({
                 $match: {
-                    userId: userId
+                    userId: mongoose.Types.ObjectId(userId)
                 }
             });
         }

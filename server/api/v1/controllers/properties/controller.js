@@ -1860,6 +1860,7 @@ class propertyController {
 
       page: Joi.number().optional(),
       limit: Joi.number().optional(),
+      userId: Joi.string().optional(),
     }
 
     try {
@@ -1872,7 +1873,9 @@ class propertyController {
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
       // validatedQuery.status = "ACTIVE"
-      validatedQuery.userId = req.userId
+      if(admin.userType == "USER"){
+        validatedQuery.userId = admin._id
+      }
       const list = await getAllLiked(validatedQuery);
 
       if (!list.docs.length) {

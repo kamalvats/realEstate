@@ -52,7 +52,25 @@ import { activityServices } from "../../services/activity";
 const { createActivity } = activityServices;
 import { createTransport } from "nodemailer";
 import { contactUsServices } from "../../services/contactUs";
-const { createContactUs, getAllContactUs, viewContactUs,findContactUs,updateContactUs } = contactUsServices;
+const { createContactUs, getAllContactUs, viewContactUs,findContactUs,updateContactUs,contactUsCount } = contactUsServices;
+import { leadsServices } from "../../services/leads";
+
+const {
+  createLeads,
+  getLeads,
+  updateLeads,
+  leadsAggSearch,
+  leadsCount
+} = leadsServices;
+import { propertiesServices } from "../../services/properties";
+
+const {
+  createProperties,
+  getProperties,
+  updateProperties,
+  propertiesAggSearch,
+  propertiesCount
+} = propertiesServices;
 export class adminController {
   /**
    * @swagger
@@ -1169,21 +1187,41 @@ export class adminController {
 
       // let userCounts = await userCount({});
 
-      let [totalUser, activeUser, blockUser, totalSubAdmin, activeSubAdmin, blockSubAdmin] = await Promise.all([
+      let [totalUser, activeUser, blockUser, totalSubAdmin, activeSubAdmin, blockSubAdmin,totalTransaction,totalRefund,totalBookedProject,totalSiteVisit,pendingSiteVisit,totalProjects,totalQueries,pendingQueries] = await Promise.all([
         userCountGraph({ status: { $ne: status.DELETE }, userType: userType.USER }),
         userCountGraph({ status: status.ACTIVE, userType: userType.USER }),
         userCountGraph({ status: status.BLOCK, userType: userType.USER }),
-        // findUserCount({ status: { $ne: status.DELETE }, userType: userType.SUBADMIN }),
-        // findUserCount({ status: status.ACTIVE, userType: userType.SUBADMIN }),
-        // findUserCount({ status: status.BLOCK, userType: userType.SUBADMIN })
+        userCountGraph({ status: { $ne: status.DELETE }, userType: userType.SUBADMIN }),
+        userCountGraph({ status: status.ACTIVE, userType: userType.SUBADMIN }),
+        userCountGraph({ status: status.BLOCK, userType: userType.SUBADMIN }),
+        findTransactions({status:"COMPLETED"}),
+        findTransactions({status:"REFUNDED"}),
+        transactionCount({status:"COMPLETED"}),
+        leadsCount({type:"info",status:{$ne:"cancel"}}),
+        leadsCount({type:"info",status:"new"}),
+        propertiesCount(),
+        contactUsCount({reply:false}),
+        contactUsCount({reply:true})
       ])
       let obj = {
         totalUser: totalUser,
         activeUser: activeUser,
         blockUser: blockUser,
-        // totalSubAdmin: totalSubAdmin,
-        // activeSubAdmin: activeSubAdmin,
-        // blockSubAdmin: blockSubAdmin
+        totalSubAdmin: totalSubAdmin,
+        activeSubAdmin: activeSubAdmin,
+        blockSubAdmin: blockSubAdmin,
+        totalTransaction:totalTransaction.reduce((a,c)=>{
+          return a + c.amount
+        }),
+        totalRefund:totalRefund.reduce((a,c)=>{
+          return a + c.amount
+        }),
+        totalBookedProject:totalBookedProject,
+        totalSiteVisit:totalSiteVisit,
+        pendingSiteVisit:pendingSiteVisit,
+        totalProjects:totalProjects,
+        totalQueries:totalQueries,
+        pendingQueries:pendingQueries
       }
 
       return res.json(new response(obj, responseMessage.DATA_FOUND));

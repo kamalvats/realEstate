@@ -448,6 +448,8 @@ let query={
    *         in: query
    *       - name: limit
    *         in: query
+   *       - name: userId
+   *         in: query
    *     responses:
    *       200:
    *         description: Lead created successfully
@@ -463,6 +465,7 @@ let query={
       toDate: Joi.string().optional(),
       page: Joi.string().optional(),
       limit: Joi.string().optional(),
+      userId: Joi.string().optional(),
     };
 
     try {

@@ -1873,7 +1873,7 @@ class propertyController {
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
       // validatedQuery.status = "ACTIVE"
-      if(admin.userType == "USER"){
+      if (admin.userType == "USER") {
         validatedQuery.userId = admin._id
       }
       const list = await getAllLiked(validatedQuery);
@@ -1956,100 +1956,100 @@ class propertyController {
      *       200:
      *         description: Returns success message
      */
-    async visitTrend(req, res, next) {
-      try {
-        const user = await findUser({
-          _id: req.userId,
-          
-          status: status.ACTIVE
-        });
-        if (!user) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
-  
-        var currentDay = new Date();
-        let weekDataRes = []
-        var daysOfWeek = [];
-        
-          let days = 0
-          if (req.query.days ) {
-            days = req.query.days
-          } else {
-            days = 7
-          }
-          var weekDate = new Date(new Date().getTime() - ((24 * Number(days)) * 60 * 60 * 1000));
-          for (var d = new Date(weekDate); d <= currentDay; d.setDate(d.getDate() + 1)) {
-            daysOfWeek.push(new Date(d));
-          }
-  
-          for (let i = 0; i < daysOfWeek.length; i++) {
-            let startTime = new Date(new Date(daysOfWeek[i]).toISOString().slice(0, 10))
-            let lastTime = new Date(new Date(daysOfWeek[i]).toISOString().slice(0, 10) + 'T23:59:59.999Z');
-            let [leads] = await Promise.all([
-              leadsCount({
-                $and: [{
-                  preferredDate: {
-                    $gte: new Date(startTime)
-                  }
-                },
-                {
-                  preferredDate: {
-                    $lte: new Date(lastTime)
-                  }
-                },
-                {
-                  status: {
-                    $ne: "cancel"
-                  }
-                },
-                {
-                  userId: req.userId
-                }
-                ]
-              }),
-            ])
-            
-            
-            let objDb = {
-             leads: leads,
-              date: daysOfWeek[i],
-            }
-            weekDataRes.push(objDb);
-          }
-  
-          return res.json(new response(weekDataRes, responseMessage.DATA_FOUND));
-        
-      } catch (error) {
-        return next(error);
-      }
-    }
+  async visitTrend(req, res, next) {
+    try {
+      const user = await findUser({
+        _id: req.userId,
 
-    /**
-   * @swagger
-   * /property/refundRequest:
-   *   post:
-   *     tags:
-   *     description: get his own profile details with getProfile API
-   *     produces:
-   *       - application/json
-   *     parameters:
-   *       - name: token
-   *         description: token
-   *         in: header
-   *         required: true
-   *       - name: trxId
-   *         description: trxId
-   *         in: query
-   *         required: true
-   *       - name: userReason
-   *         description: userReason
-   *         in: query
-   *         required: true
-   *     responses:
-   *       200:
-   *         description: Returns success message
-   */
+        status: status.ACTIVE
+      });
+      if (!user) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
+
+      var currentDay = new Date();
+      let weekDataRes = []
+      var daysOfWeek = [];
+
+      let days = 0
+      if (req.query.days) {
+        days = req.query.days
+      } else {
+        days = 7
+      }
+      var weekDate = new Date(new Date().getTime() - ((24 * Number(days)) * 60 * 60 * 1000));
+      for (var d = new Date(weekDate); d <= currentDay; d.setDate(d.getDate() + 1)) {
+        daysOfWeek.push(new Date(d));
+      }
+
+      for (let i = 0; i < daysOfWeek.length; i++) {
+        let startTime = new Date(new Date(daysOfWeek[i]).toISOString().slice(0, 10))
+        let lastTime = new Date(new Date(daysOfWeek[i]).toISOString().slice(0, 10) + 'T23:59:59.999Z');
+        let [leads] = await Promise.all([
+          leadsCount({
+            $and: [{
+              preferredDate: {
+                $gte: new Date(startTime)
+              }
+            },
+            {
+              preferredDate: {
+                $lte: new Date(lastTime)
+              }
+            },
+            {
+              status: {
+                $ne: "cancel"
+              }
+            },
+            {
+              userId: req.userId
+            }
+            ]
+          }),
+        ])
+
+
+        let objDb = {
+          leads: leads,
+          date: daysOfWeek[i],
+        }
+        weekDataRes.push(objDb);
+      }
+
+      return res.json(new response(weekDataRes, responseMessage.DATA_FOUND));
+
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  /**
+ * @swagger
+ * /property/refundRequest:
+ *   post:
+ *     tags:
+ *     description: get his own profile details with getProfile API
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: token
+ *         description: token
+ *         in: header
+ *         required: true
+ *       - name: trxId
+ *         description: trxId
+ *         in: query
+ *         required: true
+ *       - name: userReason
+ *         description: userReason
+ *         in: query
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Returns success message
+ */
   async refundRequest(req, res, next) {
     try {
-      const { trxId ,userReason} = await Joi.validate(req.query, {
+      const { trxId, userReason } = await Joi.validate(req.query, {
         trxId: Joi.string().required(),
         userReason: Joi.string().required(),
       });
@@ -2059,63 +2059,63 @@ class propertyController {
       })
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
-     let trxData = await transactionServices.getTransaction({
+      let trxData = await transactionServices.getTransaction({
         _id: trxId,
         userId: req.userId,
         status: "COMPLETED",
       })
 
-      if(!trxData) throw apiError.notFound("Transaction not found");
-       await transactionServices.updateTransaction({
-         _id: trxId,
-       },{isRefundRequested: true,userReason:userReason})
+      if (!trxData) throw apiError.notFound("Transaction not found");
+      await transactionServices.updateTransaction({
+        _id: trxId,
+      }, { isRefundRequested: true, userReason: userReason })
 
-       await createNotification({
+      await createNotification({
         userId: req.userId,
         title: "Refund Requested",
         message: "Your refund request has been sent successfully",
       });
       return res.json(
-        new response({},"Refund Request Sent Successfully")
+        new response({}, "Refund Request Sent Successfully")
       );
     } catch (error) {
       return next(error);
     }
   }
 
-  
-    /**
-   * @swagger
-   * /property/refundRequestApproval:
-   *   post:
-   *     tags:
-   *     description: get his own profile details with getProfile API
-   *     produces:
-   *       - application/json
-   *     parameters:
-   *       - name: token
-   *         description: token
-   *         in: header
-   *         required: true
-   *       - name: trxId
-   *         description: trxId
-   *         in: query
-   *         required: true
-   *       - name: status
-   *         description: status
-   *         in: query
-   *         required: true
-   *       - name: reason
-   *         description: reason
-   *         in: query
-   *         required: false
-   *     responses:
-   *       200:
-   *         description: Returns success message
-   */
+
+  /**
+ * @swagger
+ * /property/refundRequestApproval:
+ *   post:
+ *     tags:
+ *     description: get his own profile details with getProfile API
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: token
+ *         description: token
+ *         in: header
+ *         required: true
+ *       - name: trxId
+ *         description: trxId
+ *         in: query
+ *         required: true
+ *       - name: status
+ *         description: status
+ *         in: query
+ *         required: true
+ *       - name: reason
+ *         description: reason
+ *         in: query
+ *         required: false
+ *     responses:
+ *       200:
+ *         description: Returns success message
+ */
   async refundRequestApproval(req, res, next) {
     try {
-      const { trxId,status,reason ,refundAmount} = await Joi.validate(req.query, {
+      const { trxId, status, reason, refundAmount } = await Joi.validate(req.query, {
         trxId: Joi.string().required(),
         status: Joi.string().required(),
         reason: Joi.string().optional(),
@@ -2131,29 +2131,77 @@ class propertyController {
       })
       if (!admin) throw apiError.notFound(responseMessage.USER_NOT_FOUND);
 
-     let trxData = await transactionServices.getTransaction({
+      let trxData = await transactionServices.getTransaction({
         _id: trxId,
         status: "COMPLETED",
-        isRejectedByAdmin:false,
-        isRefundRequested:true
+        isRejectedByAdmin: false,
+        isRefundRequested: true
       })
 
-      if(!trxData) throw apiError.notFound("Transaction not found");
+      if (!trxData) throw apiError.notFound("Transaction not found");
 
-      if(status === "APPROVED") {
-        await transactionServices.updateTransaction({
-          _id: trxId,
-        },{status: "REFUNDED",refundAmount:refundAmount})
+      if (status === "APPROVED") {
 
+        // 1️⃣ Update transaction
+        await transactionServices.updateTransaction(
+          { _id: trxId },
+          { status: "REFUNDED", refundAmount }
+        );
+
+        // 2️⃣ Get property
+        const propertyData = await getProperties({
+          _id: trxData.projectId,
+          propertyStatus: { $ne: "DELETE" }
+        });
+
+        if (!propertyData) {
+          throw apiError.notFound("Property not found");
+        }
+
+        // 3️⃣ Update unit back to AVAILABLE
+        let unitFound = false;
+
+        for (const tower of propertyData.towers) {
+          if (tower.towerId !== trxData.towerId) continue;
+
+          for (const floor of tower.floors) {
+            if (floor.floorId !== trxData.floorId) continue;
+
+            for (const unit of floor.units) {
+              if (unit.unitId === trxData.unitId) {
+                unit.status = "AVAILABLE";
+                unit.launchDate = null;
+                unit.reservedUntil = null;
+                unit.holdByUserId = null;
+                unitFound = true;
+                break;
+              }
+            }
+          }
+        }
+
+        if (!unitFound) {
+          throw apiError.notFound("Unit not found");
+        }
+
+        // 4️⃣ Save property
+        await propertiesServices.updateProperties(
+          { _id: propertyData._id },
+          { towers: propertyData.towers }
+        );
+
+        // 5️⃣ Notify user
         await createNotification({
           userId: trxData.userId,
           title: "Refund Approved",
-          message: "Your refund request has been approved and amount will be refunded to your account within 5-7 business days",
+          message:
+            "Your refund request has been approved. The unit is now available for booking again.",
         });
-      } else {
+      }
+      else {
         await transactionServices.updateTransaction({
           _id: trxId,
-        },{isRejectedByAdmin: true,reason:reason})
+        }, { isRejectedByAdmin: true, reason: reason })
 
         await createNotification({
           userId: trxData.userId,
@@ -2162,7 +2210,7 @@ class propertyController {
         });
       }
       return res.json(
-        new response({},`Refund Request ${status === "APPROVED" ? "Approved" : "Rejected"} Successfully`)
+        new response({}, `Refund Request ${status === "APPROVED" ? "Approved" : "Rejected"} Successfully`)
       );
     } catch (error) {
       return next(error);

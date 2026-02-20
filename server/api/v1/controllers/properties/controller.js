@@ -1081,15 +1081,14 @@ class propertyController {
           _id: { $ne: validatedBody.propertyId },
           propertyStatus: { $ne: "DELETE" },
         });
-
         if (duplicate) {
           throw apiError.conflict("Property title already exists");
         }
       }
 
       const updated = await updateProperties(
-        validatedBody.propertyId,
-        validatedBody,
+       { _id: validatedBody.propertyId },
+        { $set: validatedBody },
         { new: true }
       );
 

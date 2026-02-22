@@ -52,7 +52,7 @@ const allowedOrigins = [
   "http://192.168.1.36:2070",
   "http://192.168.1.36:2072",
   "https://interventions-reader-cats-essentials.trycloudflare.com",
-  "https://island-ben-house-ruth.trycloudflare.com",
+  "https://aus-mass-housewives-munich.trycloudflare.com",
   "http://localhost:2072"
 ];
 

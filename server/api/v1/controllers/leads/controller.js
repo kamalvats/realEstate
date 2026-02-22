@@ -278,6 +278,19 @@ let query={
         { _id: validatedBody.leadId },
         validatedBody
       );
+      if (status == "closed") {
+        await createNotification({
+          userId: lead.userId,
+          title: "Site Visit  Request Closed",
+          message: `Your site visit request has been closed.`,
+        });
+      }else if(validatedBody.status == "closed"){
+        await createNotification({
+          userId: lead.userId,
+          title: "Site Visit  Request Closed",
+          message: `Your site visit request has been Closed.`,
+        });
+      }
 
       return res.json(
         new response(updated, responseMessage.UPDATE_SUCCESS)
@@ -370,6 +383,13 @@ let query={
         { _id: validatedBody.leadId },
         validatedBody
       );
+
+
+      await createNotification({
+        userId: lead.userId,
+        title: "Visit Rescheduled",
+        message: "Your visit has been rescheduled",
+      })
 
       return res.json(
         new response(updated, responseMessage.UPDATE_SUCCESS)
